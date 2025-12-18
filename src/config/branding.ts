@@ -5,3 +5,7 @@ export const BRANDING = {
   accentColor: '#7CB342',
   accentColorHover: '#689F38',
 };
+
+export const IMAGES = {
+  placeholder: 'https://juwxyrrzzfzufhsekbmp.supabase.co/storage/v1/object/public/assets/nork-placeholder.webp',
+};

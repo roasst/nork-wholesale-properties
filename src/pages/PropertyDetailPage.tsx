@@ -7,6 +7,7 @@ import { InquiryForm } from '../components/InquiryForm';
 import { MobileCTABar } from '../components/MobileCTABar';
 import { ComingSoonModal } from '../components/ComingSoonModal';
 import { CONTACT_INFO } from '../config/contact';
+import { IMAGES } from '../config/branding';
 
 export const PropertyDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -85,18 +86,14 @@ export const PropertyDetailPage = () => {
           </Link>
 
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="relative aspect-[16/9] bg-gray-200">
-              {property.image_url ? (
-                <img
-                  src={property.image_url}
-                  alt={fullAddress}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <Square size={80} />
-                </div>
-              )}
+            <div className="relative aspect-[16/9] bg-[#F5F5F5]">
+              <img
+                src={property.image_url || IMAGES.placeholder}
+                onError={(e) => { e.currentTarget.src = IMAGES.placeholder; }}
+                alt={property.image_url ? fullAddress : 'Property image coming soon'}
+                className="w-full h-full object-cover opacity-0 transition-opacity duration-200"
+                onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
+              />
               <div className="absolute top-4 right-4">
                 <span className={`${getStatusColor(property.status)} text-white text-sm font-bold px-4 py-2 rounded-full shadow-lg`}>
                   {property.status}

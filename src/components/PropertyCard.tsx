@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Bed, Bath, Square } from 'lucide-react';
 import { Property } from '../types';
 import { formatCurrency, getStatusColor } from '../lib/utils';
+import { IMAGES } from '../config/branding';
 
 interface PropertyCardProps {
   property: Property;
@@ -15,19 +16,15 @@ export const PropertyCard = ({ property }: PropertyCardProps) => {
       to={`/property/${property.id}`}
       className="block bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300"
     >
-      <div className="relative aspect-[4/3] bg-gray-200">
-        {property.image_url ? (
-          <img
-            src={property.image_url}
-            alt={fullAddress}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400">
-            <Square size={64} />
-          </div>
-        )}
+      <div className="relative aspect-[4/3] bg-[#F5F5F5]">
+        <img
+          src={property.image_url || IMAGES.placeholder}
+          onError={(e) => { e.currentTarget.src = IMAGES.placeholder; }}
+          alt={property.image_url ? fullAddress : 'Property image coming soon'}
+          className="w-full h-full object-cover opacity-0 transition-opacity duration-200"
+          onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
+          loading="lazy"
+        />
         <div className="absolute top-3 right-3">
           <span className={`${getStatusColor(property.status)} text-white text-xs font-bold px-3 py-1 rounded-full`}>
             {property.status}
