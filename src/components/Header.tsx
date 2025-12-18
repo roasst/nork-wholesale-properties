@@ -13,7 +13,7 @@ export const Header = () => {
               alt={BRANDING.companyName}
               className="h-10 md:h-12"
             />
-            <span className="text-lg md:text-xl font-bold">{BRANDING.companyName}</span>
+            <span className="text-base md:text-2xl font-bold">{BRANDING.companyName}</span>
           </Link>
 
           <div className="flex items-center gap-6">
@@ -33,7 +33,7 @@ export const Header = () => {
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = BRANDING.accentColorHover}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = BRANDING.accentColor}
             >
-              View Properties
+              Properties
             </Link>
           </div>
         </nav>

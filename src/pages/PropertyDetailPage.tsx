@@ -57,11 +57,11 @@ export const PropertyDetailPage = () => {
   };
 
   const handleWhatsApp = () => {
-    window.open(CONTACT_INFO.whatsapp, '_blank');
+    window.location.href = CONTACT_INFO.whatsapp;
   };
 
   const handleTelegram = () => {
-    window.open(CONTACT_INFO.telegram, '_blank');
+    window.location.href = CONTACT_INFO.telegram;
   };
 
   const handleGetFunding = () => {
@@ -108,9 +108,11 @@ export const PropertyDetailPage = () => {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
                   <div className="mb-6">
-                    <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{property.street_address}</h1>
+                    <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                      <span translate="no">{property.street_address}</span>
+                    </h1>
                     <p className="text-xl text-gray-600">
-                      {property.city}, {property.county} County, {property.state} {property.zip_code}
+                      <span translate="no">{property.city}, {property.county} County, {property.state} {property.zip_code}</span>
                     </p>
                   </div>
 

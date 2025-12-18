@@ -46,7 +46,9 @@ export const PropertyCard = ({ property }: PropertyCardProps) => {
           <p className="text-sm text-gray-600 mt-1">ARV: {formatCurrency(property.arv)}</p>
         </div>
 
-        <p className="text-sm text-gray-700 mb-3 line-clamp-2">{fullAddress}</p>
+        <p className="text-sm text-gray-700 mb-3 line-clamp-2">
+          <span translate="no">{fullAddress}</span>
+        </p>
 
         <div className="flex items-center gap-4 text-sm text-gray-600">
           <div className="flex items-center gap-1">

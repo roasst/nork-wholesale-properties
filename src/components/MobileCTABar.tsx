@@ -11,11 +11,11 @@ export const MobileCTABar = ({ onGetFundingClick }: MobileCTABarProps) => {
   };
 
   const handleWhatsApp = () => {
-    window.open(CONTACT_INFO.whatsapp, '_blank');
+    window.location.href = CONTACT_INFO.whatsapp;
   };
 
   const handleTelegram = () => {
-    window.open(CONTACT_INFO.telegram, '_blank');
+    window.location.href = CONTACT_INFO.telegram;
   };
 
   return (
