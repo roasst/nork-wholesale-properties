@@ -2,9 +2,14 @@ export interface OptimizedImage {
   blob: Blob;
   fileName: string;
   url: string;
+  originalSize: number;
+  optimizedSize: number;
+  warning?: string;
 }
 
 export const optimizeImage = async (file: File): Promise<OptimizedImage> => {
+  const originalSize = file.size;
+
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
@@ -34,33 +39,27 @@ export const optimizeImage = async (file: File): Promise<OptimizedImage> => {
 
         ctx.drawImage(img, 0, 0, width, height);
 
+        // Try WebP first
         canvas.toBlob(
           (blob) => {
             if (!blob) {
-              reject(new Error('Could not create blob'));
-              return;
-            }
-
-            if (blob.size > 500000) {
+              // WebP failed, try JPEG fallback
               canvas.toBlob(
-                (compressedBlob) => {
-                  if (!compressedBlob) {
-                    reject(new Error('Could not create compressed blob'));
+                (jpegBlob) => {
+                  if (!jpegBlob) {
+                    reject(new Error('Could not create blob'));
                     return;
                   }
 
-                  const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
-                  const url = URL.createObjectURL(compressedBlob);
-                  resolve({ blob: compressedBlob, fileName, url });
+                  processBlob(jpegBlob, 'jpeg', originalSize, resolve, reject, canvas, ctx);
                 },
-                'image/webp',
-                0.7
+                'image/jpeg',
+                0.85
               );
-            } else {
-              const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
-              const url = URL.createObjectURL(blob);
-              resolve({ blob, fileName, url });
+              return;
             }
+
+            processBlob(blob, 'webp', originalSize, resolve, reject, canvas, ctx);
           },
           'image/webp',
           0.85
@@ -80,6 +79,57 @@ export const optimizeImage = async (file: File): Promise<OptimizedImage> => {
 
     reader.readAsDataURL(file);
   });
+};
+
+const processBlob = (
+  blob: Blob,
+  format: 'webp' | 'jpeg',
+  originalSize: number,
+  resolve: (value: OptimizedImage) => void,
+  reject: (reason: Error) => void,
+  canvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D
+) => {
+  const extension = format === 'webp' ? 'webp' : 'jpg';
+
+  // If file is still too large, compress more aggressively
+  if (blob.size > 500000) {
+    canvas.toBlob(
+      (compressedBlob) => {
+        if (!compressedBlob) {
+          reject(new Error('Could not create compressed blob'));
+          return;
+        }
+
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${extension}`;
+        const url = URL.createObjectURL(compressedBlob);
+        const warning = compressedBlob.size > 500000
+          ? `Image is ${(compressedBlob.size / 1024).toFixed(0)}KB. Consider using a smaller image for faster loading.`
+          : undefined;
+
+        resolve({
+          blob: compressedBlob,
+          fileName,
+          url,
+          originalSize,
+          optimizedSize: compressedBlob.size,
+          warning
+        });
+      },
+      `image/${format}`,
+      0.7
+    );
+  } else {
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${extension}`;
+    const url = URL.createObjectURL(blob);
+    resolve({
+      blob,
+      fileName,
+      url,
+      originalSize,
+      optimizedSize: blob.size
+    });
+  }
 };
 
 export const validateImageFile = (file: File): string | null => {

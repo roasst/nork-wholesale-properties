@@ -17,12 +17,16 @@ export const ImageUploader = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [optimizationStatus, setOptimizationStatus] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (file: File) => {
     setError(null);
+    setWarning(null);
+    setOptimizationStatus('');
 
     const validationError = validateImageFile(file);
     if (validationError) {
@@ -33,15 +37,28 @@ export const ImageUploader = ({
     try {
       setIsUploading(true);
       setUploadProgress(10);
+      setOptimizationStatus('Optimizing image...');
 
       const optimized = await optimizeImage(file);
+
+      const sizeSaved = ((optimized.originalSize - optimized.optimizedSize) / optimized.originalSize * 100).toFixed(0);
+      setOptimizationStatus(
+        `Optimized: ${(optimized.originalSize / 1024).toFixed(0)}KB → ${(optimized.optimizedSize / 1024).toFixed(0)}KB (${sizeSaved}% smaller)`
+      );
+
+      if (optimized.warning) {
+        setWarning(optimized.warning);
+      }
+
       setUploadProgress(40);
       setPreviewUrl(optimized.url);
+
+      const contentType = optimized.fileName.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
 
       const { data, error: uploadError } = await supabase.storage
         .from('property-images')
         .upload(optimized.fileName, optimized.blob, {
-          contentType: 'image/webp',
+          contentType,
           upsert: false,
         });
 
@@ -58,6 +75,7 @@ export const ImageUploader = ({
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to upload image');
       setPreviewUrl(null);
+      setOptimizationStatus('');
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -86,6 +104,8 @@ export const ImageUploader = ({
   const handleRemove = () => {
     setPreviewUrl(null);
     setError(null);
+    setWarning(null);
+    setOptimizationStatus('');
     onImageRemoved();
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -145,7 +165,7 @@ export const ImageUploader = ({
         <div className="space-y-2">
           <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
             <Loader className="animate-spin" size={16} />
-            <span>Uploading... {uploadProgress}%</span>
+            <span>{optimizationStatus || `Uploading... ${uploadProgress}%`}</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
             <div
@@ -153,6 +173,18 @@ export const ImageUploader = ({
               style={{ width: `${uploadProgress}%` }}
             />
           </div>
+        </div>
+      )}
+
+      {!isUploading && optimizationStatus && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800">
+          {optimizationStatus}
+        </div>
+      )}
+
+      {warning && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+          {warning}
         </div>
       )}
 
