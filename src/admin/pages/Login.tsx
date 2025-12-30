@@ -91,6 +91,8 @@ export const Login = () => {
 
     try {
       await signIn(email, password);
+      setIsRedirecting(true);
+      navigate(from, { replace: true });
     } catch (err) {
       const errorMessage = getErrorMessage(err as AuthError);
       setError(errorMessage);
