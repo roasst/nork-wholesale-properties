@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Mail, Phone, Calendar, Trash2, Edit2, Check, X } from 'lucide-react';
+import { Mail, MailOpen, Phone, Calendar, Trash2, Edit2 } from 'lucide-react';
 import { AdminLayout } from '../components/AdminLayout';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { supabase } from '../../lib/supabase';
@@ -171,7 +171,7 @@ export const Inquiries = () => {
               <div
                 key={inquiry.id}
                 className={`bg-white rounded-lg shadow-md overflow-hidden ${
-                  !inquiry.marked_read_at ? 'border-l-4 border-blue-500' : ''
+                  !inquiry.marked_read_at ? 'border-l-4 border-blue-500 bg-blue-50' : ''
                 }`}
               >
                 <div
@@ -181,7 +181,7 @@ export const Inquiries = () => {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">{inquiry.name}</h3>
+                        <h3 className={`text-lg ${!inquiry.marked_read_at ? 'font-bold' : 'font-semibold'} text-gray-900`}>{inquiry.name}</h3>
                         {!inquiry.marked_read_at && (
                           <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">
                             Unread
@@ -220,7 +220,11 @@ export const Inquiries = () => {
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                         title={inquiry.marked_read_at ? 'Mark as unread' : 'Mark as read'}
                       >
-                        {inquiry.marked_read_at ? <X size={18} /> : <Check size={18} />}
+                        {inquiry.marked_read_at ? (
+                          <MailOpen size={18} className="text-green-600" />
+                        ) : (
+                          <Mail size={18} className="text-gray-500" />
+                        )}
                       </button>
                       {canDeleteProperties && (
                         <button

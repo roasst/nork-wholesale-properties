@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { UserPlus, Copy, Check } from 'lucide-react';
+import { UserPlus, Copy, Check, Mail, CheckCircle } from 'lucide-react';
 import { AdminLayout } from '../components/AdminLayout';
 import { RoleBadge } from '../components/RoleBadge';
 import { supabase } from '../../lib/supabase';
@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { UserProfile, UserRole } from '../types';
 import { canInviteRole } from '../utils/rolePermissions';
+import { BRANDING } from '../../config/branding';
 
 export const Users = () => {
   const { profile: currentUserProfile } = useAuth();
@@ -76,6 +77,14 @@ export const Users = () => {
     navigator.clipboard.writeText(invitationLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const sendViaEmail = () => {
+    const subject = encodeURIComponent(`You've been invited to ${BRANDING.companyName}`);
+    const body = encodeURIComponent(
+      `You've been invited to manage properties on ${BRANDING.companyName}.\n\nClick this link to create your account:\n${invitationLink}\n\nThis link expires in 7 days.`
+    );
+    window.location.href = `mailto:${inviteEmail}?subject=${subject}&body=${body}`;
   };
 
   const closeInviteModal = () => {
@@ -239,19 +248,33 @@ export const Users = () => {
 
             {invitationLink ? (
               <div className="p-6">
-                <p className="text-sm text-gray-600 mb-4">
-                  Share this invitation link with the user. It will expire in 7 days.
-                </p>
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
-                  <p className="text-sm text-gray-900 break-all">{invitationLink}</p>
+                <div className="flex items-center gap-2 mb-4">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <h4 className="text-lg font-semibold text-gray-900">Invitation Created</h4>
                 </div>
-                <button
-                  onClick={copyLink}
-                  className="w-full flex items-center justify-center gap-2 bg-[#7CB342] hover:bg-[#689F38] text-white font-medium py-2 px-4 rounded-lg transition-colors"
-                >
-                  {copied ? <Check size={18} /> : <Copy size={18} />}
-                  {copied ? 'Copied!' : 'Copy Link'}
-                </button>
+                <p className="text-sm text-gray-700 mb-2">
+                  Share this link with <span className="font-medium">{inviteEmail}</span>:
+                </p>
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 mb-4">
+                  <p className="text-sm text-gray-900 break-all font-mono">{invitationLink}</p>
+                </div>
+                <p className="text-xs text-gray-500 mb-4">The link expires in 7 days.</p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={copyLink}
+                    className="flex-1 flex items-center justify-center gap-2 bg-[#7CB342] hover:bg-[#689F38] text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                  >
+                    {copied ? <Check size={18} /> : <Copy size={18} />}
+                    {copied ? 'Copied!' : 'Copy Link'}
+                  </button>
+                  <button
+                    onClick={sendViaEmail}
+                    className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                  >
+                    <Mail size={18} />
+                    Send via Email
+                  </button>
+                </div>
               </div>
             ) : (
               <form onSubmit={handleInvite} className="p-6">

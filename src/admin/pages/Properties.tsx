@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Edit, Trash2, RotateCcw, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, RotateCcw, Search, Home } from 'lucide-react';
 import { AdminLayout } from '../components/AdminLayout';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { supabase } from '../../lib/supabase';
@@ -17,7 +17,9 @@ export const Properties = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showPermanentDeleteModal, setShowPermanentDeleteModal] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState<string | null>(null);
+  const [propertyToDeleteAddress, setPropertyToDeleteAddress] = useState<string>('');
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
@@ -98,6 +100,37 @@ export const Properties = () => {
     } catch (error) {
       console.error('Error restoring property:', error);
       showError('Failed to restore property');
+    }
+  };
+
+  const handlePermanentDeleteClick = (property: Property) => {
+    setPropertyToDelete(property.id);
+    setPropertyToDeleteAddress(property.street_address);
+    setShowPermanentDeleteModal(true);
+  };
+
+  const handlePermanentDelete = async () => {
+    if (!propertyToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('properties')
+        .delete()
+        .eq('id', propertyToDelete);
+
+      if (error) throw error;
+
+      success('Property permanently deleted');
+      fetchProperties();
+    } catch (error) {
+      console.error('Error permanently deleting property:', error);
+      showError('Failed to permanently delete property');
+    } finally {
+      setIsDeleting(false);
+      setShowPermanentDeleteModal(false);
+      setPropertyToDelete(null);
+      setPropertyToDeleteAddress('');
     }
   };
 
@@ -203,7 +236,7 @@ export const Properties = () => {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {canEditProperties && (
+                          {canEditProperties && property.is_active && (
                             <Link
                               to={`/admin/properties/edit/${property.id}`}
                               className="text-blue-600 hover:text-blue-700 p-1"
@@ -223,13 +256,24 @@ export const Properties = () => {
                                   <Trash2 size={18} />
                                 </button>
                               ) : (
-                                <button
-                                  onClick={() => handleRestore(property.id)}
-                                  className="text-green-600 hover:text-green-700 p-1"
-                                  title="Restore"
-                                >
-                                  <RotateCcw size={18} />
-                                </button>
+                                <>
+                                  {canEditProperties && (
+                                    <button
+                                      onClick={() => handleRestore(property.id)}
+                                      className="text-green-600 hover:text-green-700 px-3 py-1 rounded border border-green-600 hover:bg-green-50 text-sm font-medium mr-2"
+                                      title="Restore"
+                                    >
+                                      Restore
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => handlePermanentDeleteClick(property)}
+                                    className="text-red-600 hover:text-red-700 px-3 py-1 rounded border border-red-600 hover:bg-red-50 text-sm font-medium"
+                                    title="Delete Forever"
+                                  >
+                                    Delete Forever
+                                  </button>
+                                </>
                               )}
                             </>
                           )}
@@ -272,6 +316,16 @@ export const Properties = () => {
         isLoading={isDeleting}
       />
 
+      <ConfirmModal
+        isOpen={showPermanentDeleteModal}
+        onClose={() => setShowPermanentDeleteModal(false)}
+        onConfirm={handlePermanentDelete}
+        title="Permanently Delete Property?"
+        message={`This will permanently delete ${propertyToDeleteAddress}. This action cannot be undone.`}
+        confirmText="Delete Forever"
+        confirmStyle="danger"
+        isLoading={isDeleting}
+      />
     </AdminLayout>
   );
 };
