@@ -7,6 +7,7 @@ import { PropertiesPage } from './pages/PropertiesPage';
 import { PropertyDetailPage } from './pages/PropertyDetailPage';
 
 import { AuthProvider } from './admin/context/AuthContext';
+import { ToastProvider } from './admin/context/ToastContext';
 import { ProtectedRoute } from './admin/components/ProtectedRoute';
 import { AdminRedirect } from './admin/components/AdminRedirect';
 import { Login } from './admin/pages/Login';
@@ -21,8 +22,9 @@ import { Profile } from './admin/pages/Profile';
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <ToastProvider>
+      <AuthProvider>
+        <Router>
         <ScrollToTop />
         <Routes>
           <Route path="/admin" element={<AdminRedirect />} />
@@ -125,6 +127,7 @@ function App() {
         </Routes>
       </Router>
     </AuthProvider>
+  </ToastProvider>
   );
 }
 
