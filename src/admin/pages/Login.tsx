@@ -19,25 +19,24 @@ export const Login = () => {
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/admin/dashboard';
 
   useEffect(() => {
-    (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const type = searchParams.get('type');
+    const message = searchParams.get('message');
+    const hashType = hashParams.get('type');
 
-      if (session?.user) {
-        const emailConfirmed = session.user.email_confirmed_at;
-        if (emailConfirmed) {
-          setSuccessMessage('Email verified! You can now log in.');
-        }
-      }
+    const isVerificationCallback =
+      hashType === 'signup' ||
+      hashType === 'email_change' ||
+      type === 'signup' ||
+      (message && message.includes('confirmed'));
 
-      const type = searchParams.get('type');
-      const message = searchParams.get('message');
-
-      if (type === 'recovery') {
-        setSuccessMessage('Password reset successful! Please log in with your new password.');
-      } else if (message && message.includes('confirmed')) {
-        setSuccessMessage('Email verified successfully!');
-      }
-    })();
+    if (type === 'recovery' || hashType === 'recovery') {
+      setSuccessMessage('Password reset successful! Please log in with your new password.');
+      window.history.replaceState({}, document.title, '/admin/login');
+    } else if (isVerificationCallback) {
+      setSuccessMessage('Email verified! You can now log in.');
+      window.history.replaceState({}, document.title, '/admin/login');
+    }
   }, [searchParams]);
 
   useEffect(() => {
