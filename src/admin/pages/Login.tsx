@@ -47,10 +47,13 @@ export const Login = () => {
   }, [searchParams]);
 
   useEffect(() => {
-    if (user && !isLoading) {
-      navigate(from, { replace: true });
+    if (user && !isLoading && !isRedirecting) {
+      setIsRedirecting(true);
+      setTimeout(() => {
+        navigate(from, { replace: true });
+      }, 50);
     }
-  }, [user, navigate, from, isLoading]);
+  }, [user, navigate, from, isLoading, isRedirecting]);
 
   const getErrorMessage = (error: AuthError): string => {
     if (error.message.includes('Email not confirmed')) {
@@ -88,10 +91,6 @@ export const Login = () => {
 
     try {
       await signIn(email, password);
-      setIsRedirecting(true);
-      setTimeout(() => {
-        navigate(from, { replace: true, state: { fromLogin: true } });
-      }, 100);
     } catch (err) {
       const errorMessage = getErrorMessage(err as AuthError);
       setError(errorMessage);
@@ -116,19 +115,21 @@ export const Login = () => {
 
         <div className="bg-white rounded-lg shadow-lg p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {successMessage && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-green-800">{successMessage}</p>
-              </div>
-            )}
+            <div className="min-h-[60px]">
+              {successMessage && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-green-800">{successMessage}</p>
+                </div>
+              )}
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-800">{error}</p>
-              </div>
-            )}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-800">{error}</p>
+                </div>
+              )}
+            </div>
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
@@ -175,10 +176,12 @@ export const Login = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-[#7CB342] hover:bg-[#689F38] text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full h-12 bg-[#7CB342] hover:bg-[#689F38] text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSubmitting && <Loader2 className="w-5 h-5 animate-spin" />}
-              {isRedirecting ? 'Redirecting...' : isLoading ? 'Signing In...' : 'Sign In'}
+              <span className="inline-block min-w-[100px] text-center">
+                {isRedirecting ? 'Redirecting...' : isLoading ? 'Signing In...' : 'Sign In'}
+              </span>
             </button>
           </form>
 
