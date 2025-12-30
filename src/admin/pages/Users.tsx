@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react';
 import { UserPlus, Copy, Check } from 'lucide-react';
 import { AdminLayout } from '../components/AdminLayout';
 import { RoleBadge } from '../components/RoleBadge';
-import { Toast, ToastType } from '../components/Toast';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { UserProfile, UserRole } from '../types';
 import { canInviteRole } from '../utils/rolePermissions';
 
 export const Users = () => {
   const { profile: currentUserProfile } = useAuth();
+  const { success, error: showError } = useToast();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -18,7 +19,6 @@ export const Users = () => {
   const [isInviting, setIsInviting] = useState(false);
   const [invitationLink, setInvitationLink] = useState('');
   const [copied, setCopied] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -35,7 +35,7 @@ export const Users = () => {
       setUsers(data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
-      setToast({ message: 'Failed to load users', type: 'error' });
+      showError('Failed to load users');
     } finally {
       setIsLoading(false);
     }
@@ -62,10 +62,10 @@ export const Users = () => {
 
       const link = `${window.location.origin}/admin/register?token=${token}`;
       setInvitationLink(link);
-      setToast({ message: 'Invitation created successfully!', type: 'success' });
+      success('Invitation created successfully!');
     } catch (error) {
       console.error('Error creating invitation:', error);
-      setToast({ message: 'Failed to create invitation', type: 'error' });
+      showError('Failed to create invitation');
       setShowInviteModal(false);
     } finally {
       setIsInviting(false);
@@ -95,14 +95,11 @@ export const Users = () => {
 
       if (error) throw error;
 
-      setToast({
-        message: currentStatus ? 'User deactivated' : 'User activated',
-        type: 'success',
-      });
+      success(currentStatus ? 'User deactivated' : 'User activated');
       fetchUsers();
     } catch (error) {
       console.error('Error updating user:', error);
-      setToast({ message: 'Failed to update user', type: 'error' });
+      showError('Failed to update user');
     }
   };
 
@@ -115,11 +112,11 @@ export const Users = () => {
 
       if (error) throw error;
 
-      setToast({ message: 'User role updated', type: 'success' });
+      success('User role updated');
       fetchUsers();
     } catch (error) {
       console.error('Error updating role:', error);
-      setToast({ message: 'Failed to update role', type: 'error' });
+      showError('Failed to update role');
     }
   };
 
@@ -323,8 +320,6 @@ export const Users = () => {
           </div>
         </div>
       )}
-
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </AdminLayout>
   );
 };

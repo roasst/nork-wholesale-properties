@@ -1,19 +1,19 @@
 import { useState } from 'react';
 import { AdminLayout } from '../components/AdminLayout';
 import { RoleBadge } from '../components/RoleBadge';
-import { Toast, ToastType } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { supabase } from '../../lib/supabase';
 
 export const Profile = () => {
   const { profile, updateProfile, signOut } = useAuth();
+  const { success, error: showError } = useToast();
   const [fullName, setFullName] = useState(profile?.full_name || '');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,10 +21,10 @@ export const Profile = () => {
 
     try {
       await updateProfile({ full_name: fullName });
-      setToast({ message: 'Profile updated successfully', type: 'success' });
+      success('Profile updated successfully');
     } catch (error) {
       console.error('Error updating profile:', error);
-      setToast({ message: 'Failed to update profile', type: 'error' });
+      showError('Failed to update profile');
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -34,12 +34,12 @@ export const Profile = () => {
     e.preventDefault();
 
     if (newPassword !== confirmPassword) {
-      setToast({ message: 'Passwords do not match', type: 'error' });
+      showError('Passwords do not match');
       return;
     }
 
     if (newPassword.length < 6) {
-      setToast({ message: 'Password must be at least 6 characters', type: 'error' });
+      showError('Password must be at least 6 characters');
       return;
     }
 
@@ -52,13 +52,13 @@ export const Profile = () => {
 
       if (error) throw error;
 
-      setToast({ message: 'Password changed successfully', type: 'success' });
+      success('Password changed successfully');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (error) {
       console.error('Error changing password:', error);
-      setToast({ message: 'Failed to change password', type: 'error' });
+      showError('Failed to change password');
     } finally {
       setIsChangingPassword(false);
     }
@@ -67,10 +67,13 @@ export const Profile = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
-      window.location.href = '/admin/login';
+      success("You've been logged out");
+      setTimeout(() => {
+        window.location.href = '/admin/login';
+      }, 500);
     } catch (error) {
       console.error('Error signing out:', error);
-      setToast({ message: 'Failed to sign out', type: 'error' });
+      showError('Failed to sign out');
     }
   };
 
@@ -198,7 +201,6 @@ export const Profile = () => {
         </div>
       </div>
 
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </AdminLayout>
   );
 };

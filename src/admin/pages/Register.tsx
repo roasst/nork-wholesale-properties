@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { BRANDING } from '../../config/branding';
 import { UserInvitation } from '../types';
+import { CheckCircle } from 'lucide-react';
 
 export const Register = () => {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { signUp } = useAuth();
   const [invitation, setInvitation] = useState<UserInvitation | null>(null);
@@ -17,6 +17,8 @@ export const Register = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
 
   const token = searchParams.get('token');
   const OWNER_EMAIL = 'luke@roasst.com';
@@ -80,6 +82,8 @@ export const Register = () => {
     setIsSubmitting(true);
 
     try {
+      const emailToRegister = invitation?.email || email;
+
       if (invitation) {
         await signUp(invitation.email, password, fullName, invitation.role);
 
@@ -114,7 +118,8 @@ export const Register = () => {
         return;
       }
 
-      navigate('/admin/login');
+      setRegisteredEmail(emailToRegister);
+      setRegistrationSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create account');
     } finally {
@@ -145,6 +150,48 @@ export const Register = () => {
           >
             Go to Login
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (registrationSuccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <div className="text-center mb-8">
+            <Link to="/">
+              <img src={BRANDING.logoUrl} alt={BRANDING.companyName} className="h-16 mx-auto mb-4" />
+            </Link>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-10 h-10 text-green-600" />
+            </div>
+
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Check Your Email</h1>
+
+            <p className="text-gray-600 mb-2">
+              We've sent a verification link to:
+            </p>
+            <p className="text-gray-900 font-semibold mb-6">{registeredEmail}</p>
+
+            <p className="text-gray-600 mb-8">
+              Please check your inbox and click the link to activate your account. After verifying, you can log in.
+            </p>
+
+            <Link
+              to="/admin/login"
+              className="inline-block w-full bg-[#7CB342] hover:bg-[#689F38] text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+            >
+              Go to Login
+            </Link>
+
+            <p className="text-sm text-gray-500 mt-6">
+              Didn't receive the email? Check your spam folder or contact support.
+            </p>
+          </div>
         </div>
       </div>
     );

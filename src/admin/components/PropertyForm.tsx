@@ -6,6 +6,7 @@ import { US_STATES, PROPERTY_TYPES, PROPERTY_STATUSES } from '../utils/rolePermi
 import { ImageUploader } from './ImageUploader';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 interface PropertyFormProps {
   property?: Property;
@@ -15,6 +16,7 @@ interface PropertyFormProps {
 export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { success, error: showError } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -75,6 +77,7 @@ export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) =>
           .eq('id', property.id);
 
         if (updateError) throw updateError;
+        success('Property updated successfully!');
       } else {
         const { error: insertError } = await supabase
           .from('properties')
@@ -85,11 +88,14 @@ export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) =>
           });
 
         if (insertError) throw insertError;
+        success('Property created successfully!');
       }
 
       navigate('/admin/properties');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save property');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save property';
+      setError(errorMessage);
+      showError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Menu, X, LogOut, User } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { RoleBadge } from './RoleBadge';
 import { BRANDING } from '../../config/branding';
 
@@ -12,11 +13,15 @@ interface AdminHeaderProps {
 
 export const AdminHeader = ({ onMenuToggle, isMobileMenuOpen }: AdminHeaderProps) => {
   const { profile, signOut } = useAuth();
+  const { success } = useToast();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
-    window.location.href = '/admin/login';
+    success("You've been logged out");
+    setTimeout(() => {
+      window.location.href = '/admin/login';
+    }, 500);
   };
 
   return (

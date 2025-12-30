@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Home, MessageSquare, CheckCircle, DollarSign, Plus, Eye, Inbox } from 'lucide-react';
 import { AdminLayout } from '../components/AdminLayout';
 import { StatsCard } from '../components/StatsCard';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { Inquiry } from '../types';
 
 export const Dashboard = () => {
   const { profile } = useAuth();
+  const { success } = useToast();
+  const location = useLocation();
   const [stats, setStats] = useState({
     totalProperties: 0,
     activeProperties: 0,
@@ -22,7 +25,12 @@ export const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+
+    if (location.state && (location.state as { fromLogin?: boolean }).fromLogin && profile) {
+      success(`Welcome back, ${profile.full_name || 'User'}!`);
+      window.history.replaceState({}, document.title);
+    }
+  }, [profile]);
 
   const fetchDashboardData = async () => {
     try {

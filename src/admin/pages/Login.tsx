@@ -1,18 +1,44 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { BRANDING } from '../../config/branding';
+import { supabase } from '../../lib/supabase';
+import { CheckCircle } from 'lucide-react';
 
 export const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { user, signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/admin/dashboard';
+
+  useEffect(() => {
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session?.user) {
+        const emailConfirmed = session.user.email_confirmed_at;
+        if (emailConfirmed) {
+          setSuccessMessage('Email verified! You can now log in.');
+        }
+      }
+
+      const type = searchParams.get('type');
+      const message = searchParams.get('message');
+
+      if (type === 'recovery') {
+        setSuccessMessage('Password reset successful! Please log in with your new password.');
+      } else if (message && message.includes('confirmed')) {
+        setSuccessMessage('Email verified successfully!');
+      }
+    })();
+  }, [searchParams]);
 
   useEffect(() => {
     if (user) {
@@ -23,11 +49,12 @@ export const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
     setIsLoading(true);
 
     try {
       await signIn(email, password);
-      navigate(from, { replace: true });
+      navigate(from, { replace: true, state: { fromLogin: true } });
     } catch (err) {
       setError('Invalid email or password');
     } finally {
@@ -48,6 +75,13 @@ export const Login = () => {
 
         <div className="bg-white rounded-lg shadow-lg p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {successMessage && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-green-800">{successMessage}</p>
+              </div>
+            )}
+
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-800">
                 {error}

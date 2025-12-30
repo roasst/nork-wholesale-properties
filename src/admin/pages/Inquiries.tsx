@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { Mail, Phone, Calendar, Trash2, Edit2, Check, X } from 'lucide-react';
 import { AdminLayout } from '../components/AdminLayout';
 import { ConfirmModal } from '../components/ConfirmModal';
-import { Toast, ToastType } from '../components/Toast';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { Inquiry } from '../types';
 
 export const Inquiries = () => {
   const { user, canDeleteProperties } = useAuth();
+  const { success, error: showError } = useToast();
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [filter, setFilter] = useState<'all' | 'read' | 'unread'>('all');
   const [isLoading, setIsLoading] = useState(true);
@@ -17,7 +18,6 @@ export const Inquiries = () => {
   const [notesValue, setNotesValue] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [inquiryToDelete, setInquiryToDelete] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   useEffect(() => {
     fetchInquiries();
@@ -35,7 +35,7 @@ export const Inquiries = () => {
       setInquiries(data || []);
     } catch (error) {
       console.error('Error fetching inquiries:', error);
-      setToast({ message: 'Failed to load inquiries', type: 'error' });
+      showError('Failed to load inquiries');
     } finally {
       setIsLoading(false);
     }
@@ -59,14 +59,11 @@ export const Inquiries = () => {
 
       if (error) throw error;
 
-      setToast({
-        message: inquiry.marked_read_at ? 'Marked as unread' : 'Marked as read',
-        type: 'success',
-      });
+      success(inquiry.marked_read_at ? 'Marked as unread' : 'Marked as read');
       fetchInquiries();
     } catch (error) {
       console.error('Error updating inquiry:', error);
-      setToast({ message: 'Failed to update inquiry', type: 'error' });
+      showError('Failed to update inquiry');
     }
   };
 
@@ -84,12 +81,12 @@ export const Inquiries = () => {
 
       if (error) throw error;
 
-      setToast({ message: 'Notes saved successfully', type: 'success' });
+      success('Notes saved successfully');
       setEditingNotesId(null);
       fetchInquiries();
     } catch (error) {
       console.error('Error saving notes:', error);
-      setToast({ message: 'Failed to save notes', type: 'error' });
+      showError('Failed to save notes');
     }
   };
 
@@ -113,11 +110,11 @@ export const Inquiries = () => {
 
       if (error) throw error;
 
-      setToast({ message: 'Inquiry deleted successfully', type: 'success' });
+      success('Inquiry deleted successfully');
       fetchInquiries();
     } catch (error) {
       console.error('Error deleting inquiry:', error);
-      setToast({ message: 'Failed to delete inquiry', type: 'error' });
+      showError('Failed to delete inquiry');
     } finally {
       setShowDeleteModal(false);
       setInquiryToDelete(null);
@@ -321,8 +318,6 @@ export const Inquiries = () => {
         confirmText="Delete"
         confirmStyle="danger"
       />
-
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </AdminLayout>
   );
 };

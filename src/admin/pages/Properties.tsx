@@ -3,21 +3,21 @@ import { Link } from 'react-router-dom';
 import { Plus, Edit, Trash2, RotateCcw, Search } from 'lucide-react';
 import { AdminLayout } from '../components/AdminLayout';
 import { ConfirmModal } from '../components/ConfirmModal';
-import { Toast, ToastType } from '../components/Toast';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { Property } from '../../types';
 import { formatCurrency } from '../../lib/utils';
 
 export const Properties = () => {
   const { canEditProperties, canDeleteProperties } = useAuth();
+  const { success, error: showError } = useToast();
   const [properties, setProperties] = useState<Property[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export const Properties = () => {
       setFilteredProperties(data || []);
     } catch (error) {
       console.error('Error fetching properties:', error);
-      setToast({ message: 'Failed to load properties', type: 'error' });
+      showError('Failed to load properties');
     } finally {
       setIsLoading(false);
     }
@@ -72,11 +72,11 @@ export const Properties = () => {
 
       if (error) throw error;
 
-      setToast({ message: 'Property deactivated successfully', type: 'success' });
+      success('Property moved to inactive');
       fetchProperties();
     } catch (error) {
       console.error('Error deleting property:', error);
-      setToast({ message: 'Failed to deactivate property', type: 'error' });
+      showError('Failed to deactivate property');
     } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);
@@ -93,11 +93,11 @@ export const Properties = () => {
 
       if (error) throw error;
 
-      setToast({ message: 'Property restored successfully', type: 'success' });
+      success('Property restored successfully');
       fetchProperties();
     } catch (error) {
       console.error('Error restoring property:', error);
-      setToast({ message: 'Failed to restore property', type: 'error' });
+      showError('Failed to restore property');
     }
   };
 
@@ -272,7 +272,6 @@ export const Properties = () => {
         isLoading={isDeleting}
       />
 
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </AdminLayout>
   );
 };
