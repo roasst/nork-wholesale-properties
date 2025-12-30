@@ -58,4 +58,18 @@ export interface PropertyFormData {
   comments: string | null;
   image_url: string | null;
   is_active: boolean;
+  wholesaler_id: string | null;
+  source_email_subject: string | null;
+  source_email_body: string | null;
+  source_email_date: string | null;
+  auto_imported: boolean;
+}
+
+export interface WholesalerFormData {
+  name: string;
+  email: string;
+  phone: string | null;
+  company_name: string | null;
+  is_trusted: boolean;
+  notes: string | null;
 }

@@ -37,6 +37,11 @@ export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) =>
     comments: property?.comments || null,
     image_url: property?.image_url || null,
     is_active: property?.is_active ?? true,
+    wholesaler_id: property?.wholesaler_id || null,
+    source_email_subject: property?.source_email_subject || null,
+    source_email_body: property?.source_email_body || null,
+    source_email_date: property?.source_email_date || null,
+    auto_imported: property?.auto_imported || false,
   });
 
   const handleChange = (

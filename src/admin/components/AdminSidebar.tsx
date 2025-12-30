@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Home, MessageSquare, Users, X } from 'lucide-react';
+import { LayoutDashboard, Home, MessageSquare, Users, X, Building2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useAdminProperties } from '../hooks/useAdminProperties';
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -10,11 +11,13 @@ interface AdminSidebarProps {
 export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
   const location = useLocation();
   const { canManageUsers } = useAuth();
+  const { pendingCount } = useAdminProperties({ status: 'pending' });
 
   const navItems = [
     { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/admin/properties', icon: Home, label: 'Properties' },
+    { path: '/admin/properties', icon: Home, label: 'Properties', badge: pendingCount },
     { path: '/admin/inquiries', icon: MessageSquare, label: 'Inquiries' },
+    { path: '/admin/wholesalers', icon: Building2, label: 'Wholesalers' },
     ...(canManageUsers ? [{ path: '/admin/users', icon: Users, label: 'Users' }] : []),
   ];
 
@@ -59,7 +62,16 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
                   }`}
                 >
                   <Icon size={20} />
-                  {item.label}
+                  <span className="flex-1">{item.label}</span>
+                  {item.badge != null && item.badge > 0 && (
+                    <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${
+                      active
+                        ? 'bg-white text-[#7CB342]'
+                        : 'bg-amber-500 text-white'
+                    }`}>
+                      {item.badge}
+                    </span>
+                  )}
                 </Link>
               );
             })}

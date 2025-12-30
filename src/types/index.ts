@@ -1,6 +1,6 @@
 export type PropertyType = 'SFR' | 'Duplex' | 'Triplex' | 'Quad' | 'Multi-Family' | 'Commercial';
 
-export type PropertyStatus = 'Available' | 'Under Contract' | 'Sold';
+export type PropertyStatus = 'pending' | 'Available' | 'Under Contract' | 'Sold';
 
 export interface Property {
   id: string;
@@ -19,6 +19,11 @@ export interface Property {
   image_url: string | null;
   comments: string | null;
   is_active: boolean;
+  wholesaler_id: string | null;
+  source_email_subject: string | null;
+  source_email_body: string | null;
+  source_email_date: string | null;
+  auto_imported: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -43,4 +48,18 @@ export interface PropertyFilters {
   minPrice?: number;
   maxPrice?: number;
   propertyTypes?: PropertyType[];
+}
+
+export interface Wholesaler {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  company_name: string | null;
+  is_trusted: boolean;
+  notes: string | null;
+  total_deals: number;
+  last_deal_date: string | null;
+  created_at: string;
+  updated_at: string;
 }

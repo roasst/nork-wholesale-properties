@@ -23,6 +23,18 @@ export const canDeleteInquiries = (role: UserRole): boolean => {
   return ROLE_HIERARCHY[role] >= ROLE_HIERARCHY.editor;
 };
 
+export const canManageWholesalers = (role: UserRole): boolean => {
+  return ROLE_HIERARCHY[role] >= ROLE_HIERARCHY.editor;
+};
+
+export const canToggleTrusted = (role: UserRole): boolean => {
+  return ROLE_HIERARCHY[role] >= ROLE_HIERARCHY.admin;
+};
+
+export const canApproveProperties = (role: UserRole): boolean => {
+  return ROLE_HIERARCHY[role] >= ROLE_HIERARCHY.editor;
+};
+
 export const canInviteRole = (inviterRole: UserRole, targetRole: UserRole): boolean => {
   if (inviterRole === 'owner') return true;
   if (inviterRole === 'admin' && targetRole !== 'owner' && targetRole !== 'admin') return true;
@@ -66,6 +78,7 @@ export const PROPERTY_TYPES = [
 ];
 
 export const PROPERTY_STATUSES = [
+  'pending',
   'Available',
   'Under Contract',
   'Sold'

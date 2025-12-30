@@ -19,6 +19,8 @@ import { PropertyEdit } from './admin/pages/PropertyEdit';
 import { Inquiries } from './admin/pages/Inquiries';
 import { Users } from './admin/pages/Users';
 import { Profile } from './admin/pages/Profile';
+import { Wholesalers } from './admin/pages/Wholesalers';
+import { WholesalerDetail } from './admin/pages/WholesalerDetail';
 
 function App() {
   return (
@@ -68,6 +70,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <Inquiries />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/wholesalers"
+            element={
+              <ProtectedRoute>
+                <Wholesalers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/wholesalers/:id"
+            element={
+              <ProtectedRoute>
+                <WholesalerDetail />
               </ProtectedRoute>
             }
           />
