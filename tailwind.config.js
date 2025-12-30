@@ -12,7 +12,29 @@ export default {
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            'a': {
+              color: '#7CB342',
+              '&:hover': {
+                color: '#689F38',
+              },
+            },
+            'ul > li': {
+              '&::marker': {
+                color: '#7CB342',
+              },
+            },
+            'ol > li': {
+              '&::marker': {
+                color: '#7CB342',
+              },
+            },
+          },
+        },
+      },
     },
   },
-  plugins: [],
+  plugins: [require('@tailwindcss/typography')],
 };

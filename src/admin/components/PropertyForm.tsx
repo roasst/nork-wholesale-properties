@@ -4,6 +4,7 @@ import { Property } from '../../types';
 import { PropertyFormData } from '../types';
 import { US_STATES, PROPERTY_TYPES, PROPERTY_STATUSES } from '../utils/rolePermissions';
 import { ImageUploader } from './ImageUploader';
+import { RichTextEditor } from './RichTextEditor';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -334,13 +335,10 @@ export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) =>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Comments / Comps / Notes
           </label>
-          <textarea
-            name="comments"
-            value={formData.comments || ''}
-            onChange={handleChange}
-            rows={6}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
-            placeholder="Add any additional details about the property..."
+          <RichTextEditor
+            content={formData.comments || ''}
+            onChange={(html) => setFormData((prev) => ({ ...prev, comments: html || null }))}
+            placeholder="Add notes about the property, comparable sales, etc."
           />
         </div>
 

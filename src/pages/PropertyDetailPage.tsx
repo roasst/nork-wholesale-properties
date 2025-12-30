@@ -158,7 +158,10 @@ export const PropertyDetailPage = () => {
                     <div className="mb-8">
                       <h2 className="text-2xl font-bold text-gray-900 mb-4">Property Details</h2>
                       <div className="bg-gray-50 p-6 rounded-lg">
-                        <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{property.comments}</p>
+                        <div
+                          className="prose prose-sm max-w-none text-gray-700"
+                          dangerouslySetInnerHTML={{ __html: property.comments }}
+                        />
                       </div>
                     </div>
                   )}
