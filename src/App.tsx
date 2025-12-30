@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { ScrollToTop } from './components/ScrollToTop';
@@ -8,6 +8,7 @@ import { PropertyDetailPage } from './pages/PropertyDetailPage';
 
 import { AuthProvider } from './admin/context/AuthContext';
 import { ProtectedRoute } from './admin/components/ProtectedRoute';
+import { AdminRedirect } from './admin/components/AdminRedirect';
 import { Login } from './admin/pages/Login';
 import { Register } from './admin/pages/Register';
 import { Dashboard } from './admin/pages/Dashboard';
@@ -24,6 +25,7 @@ function App() {
       <Router>
         <ScrollToTop />
         <Routes>
+          <Route path="/admin" element={<AdminRedirect />} />
           <Route path="/admin/login" element={<Login />} />
           <Route path="/admin/register" element={<Register />} />
 
@@ -85,16 +87,36 @@ function App() {
           />
 
           <Route
-            path="*"
+            path="/"
             element={
               <div className="min-h-screen flex flex-col">
                 <Header />
                 <main className="flex-grow">
-                  <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/properties" element={<PropertiesPage />} />
-                    <Route path="/property/:id" element={<PropertyDetailPage />} />
-                  </Routes>
+                  <HomePage />
+                </main>
+                <Footer />
+              </div>
+            }
+          />
+          <Route
+            path="/properties"
+            element={
+              <div className="min-h-screen flex flex-col">
+                <Header />
+                <main className="flex-grow">
+                  <PropertiesPage />
+                </main>
+                <Footer />
+              </div>
+            }
+          />
+          <Route
+            path="/property/:id"
+            element={
+              <div className="min-h-screen flex flex-col">
+                <Header />
+                <main className="flex-grow">
+                  <PropertyDetailPage />
                 </main>
                 <Footer />
               </div>
