@@ -93,8 +93,11 @@ export const Login = () => {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <Link to="/" className="text-sm text-gray-600 hover:text-[#7CB342]">
+          <div className="mt-6 text-center space-y-3">
+            <Link to="/admin/register" className="block text-sm text-[#7CB342] hover:text-[#689F38] font-medium">
+              Create Account
+            </Link>
+            <Link to="/" className="block text-sm text-gray-600 hover:text-[#7CB342]">
               Back to Website
             </Link>
           </div>

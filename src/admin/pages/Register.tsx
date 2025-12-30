@@ -11,6 +11,7 @@ export const Register = () => {
   const { signUp } = useAuth();
   const [invitation, setInvitation] = useState<UserInvitation | null>(null);
   const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -18,11 +19,11 @@ export const Register = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const token = searchParams.get('token');
+  const OWNER_EMAIL = 'luke@roasst.com';
 
   useEffect(() => {
     (async () => {
       if (!token) {
-        setError('Invalid invitation link');
         setIsLoading(false);
         return;
       }
@@ -53,6 +54,7 @@ export const Register = () => {
         }
 
         setInvitation(data);
+        setEmail(data.email);
       } catch (err) {
         setError('Failed to validate invitation');
       } finally {
@@ -75,20 +77,42 @@ export const Register = () => {
       return;
     }
 
-    if (!invitation) {
-      setError('Invalid invitation');
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      await signUp(invitation.email, password, fullName, invitation.role);
+      if (invitation) {
+        await signUp(invitation.email, password, fullName, invitation.role);
 
-      await supabase
-        .from('user_invitations')
-        .update({ accepted_at: new Date().toISOString() })
-        .eq('id', invitation.id);
+        await supabase
+          .from('user_invitations')
+          .update({ accepted_at: new Date().toISOString() })
+          .eq('id', invitation.id);
+      } else if (email === OWNER_EMAIL) {
+        const { data: ownerInvitation } = await supabase
+          .from('user_invitations')
+          .select('*')
+          .eq('email', OWNER_EMAIL)
+          .eq('role', 'owner')
+          .is('accepted_at', null)
+          .maybeSingle();
+
+        if (!ownerInvitation) {
+          setError('No pending owner invitation found for this email');
+          setIsSubmitting(false);
+          return;
+        }
+
+        await signUp(email, password, fullName, 'owner');
+
+        await supabase
+          .from('user_invitations')
+          .update({ accepted_at: new Date().toISOString() })
+          .eq('id', ownerInvitation.id);
+      } else {
+        setError('Invalid email or invitation required');
+        setIsSubmitting(false);
+        return;
+      }
 
       navigate('/admin/login');
     } catch (err) {
@@ -109,7 +133,7 @@ export const Register = () => {
     );
   }
 
-  if (error && !invitation) {
+  if (error && !invitation && token) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
@@ -167,9 +191,14 @@ export const Register = () => {
               <input
                 id="email"
                 type="email"
-                value={invitation?.email || ''}
-                disabled
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={!!invitation}
+                required
+                className={`w-full px-4 py-3 border border-gray-300 rounded-lg ${
+                  invitation ? 'bg-gray-100 text-gray-600' : 'focus:ring-2 focus:ring-[#7CB342] focus:border-transparent'
+                }`}
+                placeholder="your@email.com"
               />
             </div>
 
