@@ -14,13 +14,18 @@ export const useAdminProperties = (filters?: AdminPropertyFilters) => {
   const [error, setError] = useState<string | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
 
+  const statusFilter = filters?.status;
+  const isActiveFilter = filters?.is_active;
+  const wholesalerIdFilter = filters?.wholesaler_id;
+
   useEffect(() => {
     fetchProperties();
     fetchPendingCount();
-  }, [filters]);
+  }, [statusFilter, isActiveFilter, wholesalerIdFilter]);
 
   const fetchProperties = async () => {
     try {
+      console.log('Fetching properties...', { statusFilter, isActiveFilter, wholesalerIdFilter });
       setLoading(true);
       setError(null);
 
@@ -29,24 +34,27 @@ export const useAdminProperties = (filters?: AdminPropertyFilters) => {
         .select('*, wholesalers(name, email, company_name)')
         .order('created_at', { ascending: false });
 
-      if (filters?.status && filters.status !== 'all') {
-        query = query.eq('status', filters.status);
+      if (statusFilter && statusFilter !== 'all') {
+        query = query.eq('status', statusFilter);
       }
 
-      if (filters?.is_active !== undefined) {
-        query = query.eq('is_active', filters.is_active);
+      if (isActiveFilter !== undefined) {
+        query = query.eq('is_active', isActiveFilter);
       }
 
-      if (filters?.wholesaler_id) {
-        query = query.eq('wholesaler_id', filters.wholesaler_id);
+      if (wholesalerIdFilter) {
+        query = query.eq('wholesaler_id', wholesalerIdFilter);
       }
 
       const { data, error: fetchError } = await query;
+
+      console.log('Properties result:', { count: data?.length, error: fetchError });
 
       if (fetchError) throw fetchError;
 
       setProperties(data || []);
     } catch (err) {
+      console.error('Properties fetch error:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch properties');
     } finally {
       setLoading(false);

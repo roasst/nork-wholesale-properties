@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Home, MessageSquare, Users, X, Building2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useAdminProperties } from '../hooks/useAdminProperties';
+import { usePendingCount } from '../hooks/usePendingCount';
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -11,7 +11,7 @@ interface AdminSidebarProps {
 export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
   const location = useLocation();
   const { canManageUsers } = useAuth();
-  const { pendingCount } = useAdminProperties({ status: 'pending' });
+  const pendingCount = usePendingCount();
 
   const navItems = [
     { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },

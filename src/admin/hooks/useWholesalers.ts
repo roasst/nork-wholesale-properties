@@ -12,12 +12,16 @@ export const useWholesalers = (filters?: WholesalersFilters) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const searchTerm = filters?.search;
+  const trustedFilter = filters?.trusted;
+
   useEffect(() => {
     fetchWholesalers();
-  }, [filters]);
+  }, [searchTerm, trustedFilter]);
 
   const fetchWholesalers = async () => {
     try {
+      console.log('Fetching wholesalers...', { searchTerm, trustedFilter });
       setLoading(true);
       setError(null);
 
@@ -26,21 +30,24 @@ export const useWholesalers = (filters?: WholesalersFilters) => {
         .select('*')
         .order('total_deals', { ascending: false });
 
-      if (filters?.search) {
-        const searchTerm = `%${filters.search}%`;
-        query = query.or(`name.ilike.${searchTerm},email.ilike.${searchTerm},company_name.ilike.${searchTerm}`);
+      if (searchTerm) {
+        const searchPattern = `%${searchTerm}%`;
+        query = query.or(`name.ilike.${searchPattern},email.ilike.${searchPattern},company_name.ilike.${searchPattern}`);
       }
 
-      if (filters?.trusted !== undefined) {
-        query = query.eq('is_trusted', filters.trusted);
+      if (trustedFilter !== undefined) {
+        query = query.eq('is_trusted', trustedFilter);
       }
 
       const { data, error: fetchError } = await query;
+
+      console.log('Wholesalers result:', { count: data?.length, error: fetchError });
 
       if (fetchError) throw fetchError;
 
       setWholesalers(data || []);
     } catch (err) {
+      console.error('Wholesalers fetch error:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch wholesalers');
     } finally {
       setLoading(false);
