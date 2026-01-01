@@ -12,7 +12,7 @@ import { supabase } from '../../lib/supabase';
 import { Property } from '../../types';
 import { IMAGES } from '../../config/branding';
 
-type StatusFilter = 'all' | 'pending' | 'active' | 'inactive';
+type StatusFilter = 'all' | 'pending' | 'visible' | 'hidden';
 type ImageFilter = 'all' | 'has-image' | 'needs-image';
 
 export const Properties = () => {
@@ -31,8 +31,8 @@ export const Properties = () => {
   const wholesalerId = searchParams.get('wholesaler') || undefined;
 
   const { properties, loading, pendingCount, refetch } = useAdminProperties({
-    status: statusFilter === 'pending' ? 'pending' : statusFilter === 'all' ? 'all' : undefined,
-    is_active: statusFilter === 'active' ? true : statusFilter === 'inactive' ? false : undefined,
+    status: statusFilter === 'pending' ? 'pending' : 'all',
+    is_active: statusFilter === 'visible' ? true : statusFilter === 'hidden' ? false : undefined,
     wholesaler_id: wholesalerId,
   });
 
@@ -182,12 +182,19 @@ export const Properties = () => {
   };
 
   const needsImageCount = properties.filter((p) => !p.image_url && p.status !== 'pending').length;
+  const hiddenCount = properties.filter((p) => !p.is_active).length;
+  const totalCount = properties.length;
 
   return (
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h1 className="text-3xl font-bold text-gray-900">Properties</h1>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Properties</h1>
+            <p className="text-sm text-gray-600 mt-1">
+              {totalCount} total • {hiddenCount} hidden • {needsImageCount} need images • {pendingCount} pending review
+            </p>
+          </div>
           {canEditProperties && (
             <Link
               to="/admin/properties/new"
@@ -230,24 +237,26 @@ export const Properties = () => {
                 )}
               </button>
               <button
-                onClick={() => handleStatusFilterChange('active')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  statusFilter === 'active'
+                onClick={() => handleStatusFilterChange('visible')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                  statusFilter === 'visible'
                     ? 'bg-green-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                Active
+                <Eye size={16} />
+                Visible
               </button>
               <button
-                onClick={() => handleStatusFilterChange('inactive')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  statusFilter === 'inactive'
-                    ? 'bg-red-600 text-white'
+                onClick={() => handleStatusFilterChange('hidden')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                  statusFilter === 'hidden'
+                    ? 'bg-gray-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                Inactive
+                <EyeOff size={16} />
+                Hidden
               </button>
             </div>
           </div>

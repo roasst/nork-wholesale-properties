@@ -8,7 +8,7 @@ interface FilterBarProps {
   onFiltersChange: (filters: PropertyFilters) => void;
 }
 
-const PROPERTY_TYPES: PropertyType[] = ['SFR', 'Duplex', 'Triplex', 'Quad', 'Multi-Family', 'Commercial'];
+const PROPERTY_TYPES: PropertyType[] = ['SFR', 'Duplex', 'Triplex', 'Quad', 'Multi-Family', 'Commercial', 'Condo', 'Townhome', 'Vacant Land', 'Other'];
 
 export const FilterBar = ({ filters, onFiltersChange }: FilterBarProps) => {
   const [selectedState, setSelectedState] = useState(filters.state || '');

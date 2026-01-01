@@ -1,4 +1,4 @@
-export type PropertyType = 'SFR' | 'Duplex' | 'Triplex' | 'Quad' | 'Multi-Family' | 'Commercial';
+export type PropertyType = 'SFR' | 'Duplex' | 'Triplex' | 'Quad' | 'Multi-Family' | 'Commercial' | 'Condo' | 'Townhome' | 'Vacant Land' | 'Other';
 
 export type PropertyStatus = 'pending' | 'Available' | 'Under Contract' | 'Sold';
 

@@ -74,7 +74,11 @@ export const PROPERTY_TYPES = [
   'Triplex',
   'Quad',
   'Multi-Family',
-  'Commercial'
+  'Commercial',
+  'Condo',
+  'Townhome',
+  'Vacant Land',
+  'Other'
 ];
 
 export const PROPERTY_STATUSES = [

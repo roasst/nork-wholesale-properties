@@ -88,7 +88,7 @@ export const useAdminProperties = (filters?: AdminPropertyFilters) => {
 export const approveProperty = async (id: string) => {
   const { error } = await supabase
     .from('properties')
-    .update({ status: 'Available' })
+    .update({ status: 'Available', is_active: true })
     .eq('id', id);
 
   if (error) throw error;
@@ -106,7 +106,7 @@ export const rejectProperty = async (id: string, userId: string) => {
 export const approveAndTrustSender = async (propertyId: string, wholesalerId: string) => {
   const { error: approveError } = await supabase
     .from('properties')
-    .update({ status: 'Available' })
+    .update({ status: 'Available', is_active: true })
     .eq('id', propertyId);
 
   if (approveError) throw approveError;
