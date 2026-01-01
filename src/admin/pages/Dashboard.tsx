@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, MessageSquare, CheckCircle, DollarSign, Plus, Eye, Inbox } from 'lucide-react';
+import { Home, MessageSquare, CheckCircle, DollarSign, Plus, Eye, Inbox, CameraOff } from 'lucide-react';
 import { AdminLayout } from '../components/AdminLayout';
 import { StatsCard } from '../components/StatsCard';
 import { supabase } from '../../lib/supabase';
@@ -17,6 +17,7 @@ export const Dashboard = () => {
     activeProperties: 0,
     underContract: 0,
     sold: 0,
+    needsImage: 0,
     totalInquiries: 0,
     unreadInquiries: 0,
   });
@@ -35,7 +36,7 @@ export const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       const [propertiesResult, inquiriesResult, recentInquiriesResult] = await Promise.all([
-        supabase.from('properties').select('status, is_active', { count: 'exact' }),
+        supabase.from('properties').select('status, is_active, image_url', { count: 'exact' }),
         supabase.from('inquiries').select('marked_read_at', { count: 'exact' }).eq('is_deleted', false),
         supabase
           .from('inquiries')
@@ -50,6 +51,7 @@ export const Dashboard = () => {
         const activeProperties = propertiesResult.data.filter((p) => p.is_active).length;
         const underContract = propertiesResult.data.filter((p) => p.status === 'Under Contract').length;
         const sold = propertiesResult.data.filter((p) => p.status === 'Sold').length;
+        const needsImage = propertiesResult.data.filter((p) => !p.image_url && p.status !== 'pending').length;
 
         setStats((prev) => ({
           ...prev,
@@ -57,6 +59,7 @@ export const Dashboard = () => {
           activeProperties,
           underContract,
           sold,
+          needsImage,
         }));
       }
 
@@ -99,35 +102,60 @@ export const Dashboard = () => {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatsCard
-              title="Active Properties"
-              value={stats.activeProperties}
-              icon={Home}
-              subtitle={`${stats.totalProperties} total`}
-            />
-            <StatsCard
-              title="Total Inquiries"
-              value={stats.totalInquiries}
-              icon={MessageSquare}
-              subtitle={`${stats.unreadInquiries} unread`}
-              color="#3B82F6"
-            />
-            <StatsCard
-              title="Under Contract"
-              value={stats.underContract}
-              icon={CheckCircle}
-              subtitle="Pending sales"
-              color="#F59E0B"
-            />
-            <StatsCard
-              title="Sold"
-              value={stats.sold}
-              icon={DollarSign}
-              subtitle="Completed deals"
-              color="#10B981"
-            />
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <StatsCard
+                title="Active Properties"
+                value={stats.activeProperties}
+                icon={Home}
+                subtitle={`${stats.totalProperties} total`}
+              />
+              <StatsCard
+                title="Total Inquiries"
+                value={stats.totalInquiries}
+                icon={MessageSquare}
+                subtitle={`${stats.unreadInquiries} unread`}
+                color="#3B82F6"
+              />
+              <StatsCard
+                title="Under Contract"
+                value={stats.underContract}
+                icon={CheckCircle}
+                subtitle="Pending sales"
+                color="#F59E0B"
+              />
+              <StatsCard
+                title="Sold"
+                value={stats.sold}
+                icon={DollarSign}
+                subtitle="Completed deals"
+                color="#10B981"
+              />
+            </div>
+
+            {stats.needsImage > 0 && (
+              <Link to="/admin/properties?image=needs-image">
+                <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-300 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-orange-500 rounded-lg">
+                      <CameraOff size={32} className="text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-gray-900 mb-1">
+                        {stats.needsImage} {stats.needsImage === 1 ? 'Property Needs' : 'Properties Need'} Images
+                      </h3>
+                      <p className="text-sm text-gray-700">
+                        Add images to make {stats.needsImage === 1 ? 'it' : 'them'} visible on your website
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-orange-600 font-semibold">View →</span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            )}
+          </>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

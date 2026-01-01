@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { Property } from '../../types';
 import { PropertyFormData } from '../types';
 import { US_STATES, PROPERTY_TYPES, PROPERTY_STATUSES } from '../utils/rolePermissions';
@@ -117,14 +117,29 @@ export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) =>
       )}
 
       <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
-        <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-4">
-          Property Image
-        </h3>
+        <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Property Image
+          </h3>
+          {!formData.image_url && (
+            <span className="text-xs bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+              <AlertCircle size={12} />
+              Image Required
+            </span>
+          )}
+        </div>
         <ImageUploader
           currentImageUrl={formData.image_url}
-          onImageUploaded={(url) => setFormData((prev) => ({ ...prev, image_url: url }))}
+          onImageUploaded={(url) => setFormData((prev) => ({ ...prev, image_url: url, is_active: true }))}
           onImageRemoved={() => setFormData((prev) => ({ ...prev, image_url: null }))}
         />
+        {!formData.image_url && (
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+            <p className="text-xs text-orange-800">
+              <strong>Note:</strong> Properties without images will be hidden from the public website by default. Upload an image to make this property visible.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-6 space-y-6">

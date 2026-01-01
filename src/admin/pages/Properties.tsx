@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Plus, Edit, Trash2, Search, Home, AlertCircle, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Home, AlertCircle, Eye, EyeOff, CheckCircle, Camera, CameraOff } from 'lucide-react';
 import { AdminLayout } from '../components/AdminLayout';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { PendingPropertyCard } from '../components/PendingPropertyCard';
@@ -10,14 +10,17 @@ import { useToast } from '../context/ToastContext';
 import { formatCurrency, getAdminStatusLabel } from '../../lib/utils';
 import { supabase } from '../../lib/supabase';
 import { Property } from '../../types';
+import { IMAGES } from '../../config/branding';
 
 type StatusFilter = 'all' | 'pending' | 'active' | 'inactive';
+type ImageFilter = 'all' | 'has-image' | 'needs-image';
 
 export const Properties = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { canEditProperties, canDeleteProperties } = useAuth();
   const { success, error: showError } = useToast();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>((searchParams.get('status') as StatusFilter) || 'all');
+  const [imageFilter, setImageFilter] = useState<ImageFilter>((searchParams.get('image') as ImageFilter) || 'all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showPermanentDeleteModal, setShowPermanentDeleteModal] = useState(false);
@@ -33,13 +36,19 @@ export const Properties = () => {
     wholesaler_id: wholesalerId,
   });
 
-  const filteredProperties = searchTerm
+  let filteredProperties = searchTerm
     ? properties.filter((p) =>
         `${p.street_address} ${p.city} ${p.state} ${p.zip_code} ${p.property_type}`
           .toLowerCase()
           .includes(searchTerm.toLowerCase())
       )
     : properties;
+
+  if (imageFilter === 'has-image') {
+    filteredProperties = filteredProperties.filter((p) => p.image_url);
+  } else if (imageFilter === 'needs-image') {
+    filteredProperties = filteredProperties.filter((p) => !p.image_url);
+  }
 
   const pendingProperties = filteredProperties.filter(p => p.status === 'pending');
   const regularProperties = filteredProperties.filter(p => p.status !== 'pending');
@@ -161,6 +170,19 @@ export const Properties = () => {
     setSearchParams(newParams);
   };
 
+  const handleImageFilterChange = (filter: ImageFilter) => {
+    setImageFilter(filter);
+    const newParams = new URLSearchParams(searchParams);
+    if (filter !== 'all') {
+      newParams.set('image', filter);
+    } else {
+      newParams.delete('image');
+    }
+    setSearchParams(newParams);
+  };
+
+  const needsImageCount = properties.filter((p) => !p.image_url && p.status !== 'pending').length;
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -178,53 +200,99 @@ export const Properties = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-4">
-          <div className="flex flex-wrap gap-2 mb-4">
-            <button
-              onClick={() => handleStatusFilterChange('all')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                statusFilter === 'all'
-                  ? 'bg-[#7CB342] text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              All
-            </button>
-            <button
-              onClick={() => handleStatusFilterChange('pending')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                statusFilter === 'pending'
-                  ? 'bg-amber-500 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              <AlertCircle size={16} />
-              Pending Review
-              {pendingCount > 0 && (
-                <span className="bg-white text-amber-600 px-2 py-0.5 rounded-full text-xs font-bold">
-                  {pendingCount}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => handleStatusFilterChange('active')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                statusFilter === 'active'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Active
-            </button>
-            <button
-              onClick={() => handleStatusFilterChange('inactive')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                statusFilter === 'inactive'
-                  ? 'bg-red-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Inactive
-            </button>
+          <div className="mb-4">
+            <p className="text-xs font-medium text-gray-500 uppercase mb-2">Status</p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => handleStatusFilterChange('all')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  statusFilter === 'all'
+                    ? 'bg-[#7CB342] text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => handleStatusFilterChange('pending')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                  statusFilter === 'pending'
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <AlertCircle size={16} />
+                Pending Review
+                {pendingCount > 0 && (
+                  <span className="bg-white text-amber-600 px-2 py-0.5 rounded-full text-xs font-bold">
+                    {pendingCount}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => handleStatusFilterChange('active')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  statusFilter === 'active'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Active
+              </button>
+              <button
+                onClick={() => handleStatusFilterChange('inactive')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  statusFilter === 'inactive'
+                    ? 'bg-red-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Inactive
+              </button>
+            </div>
+          </div>
+
+          <div className="mb-4 pt-4 border-t border-gray-200">
+            <p className="text-xs font-medium text-gray-500 uppercase mb-2">Images</p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => handleImageFilterChange('all')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  imageFilter === 'all'
+                    ? 'bg-[#7CB342] text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => handleImageFilterChange('has-image')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                  imageFilter === 'has-image'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Camera size={16} />
+                Has Image
+              </button>
+              <button
+                onClick={() => handleImageFilterChange('needs-image')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                  imageFilter === 'needs-image'
+                    ? 'bg-orange-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <CameraOff size={16} />
+                Needs Image
+                {needsImageCount > 0 && (
+                  <span className={`${imageFilter === 'needs-image' ? 'bg-white text-orange-600' : 'bg-orange-600 text-white'} px-2 py-0.5 rounded-full text-xs font-bold`}>
+                    {needsImageCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="relative">
@@ -295,15 +363,34 @@ export const Properties = () => {
                         <tr key={property.id} className={!property.is_active ? 'bg-gray-50 opacity-60' : ''}>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
-                              {property.image_url && (
-                                <img
-                                  src={property.image_url}
-                                  alt={property.street_address}
-                                  className="w-16 h-16 rounded object-cover"
-                                />
-                              )}
-                              <div>
-                                <p className="font-medium text-gray-900">{property.street_address}</p>
+                              <div className="relative w-16 h-16 flex-shrink-0">
+                                {property.image_url ? (
+                                  <img
+                                    src={property.image_url}
+                                    alt={property.street_address}
+                                    className="w-full h-full rounded object-cover"
+                                    onError={(e) => { e.currentTarget.src = IMAGES.placeholder; }}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full rounded bg-gray-200 flex items-center justify-center">
+                                    <CameraOff size={24} className="text-gray-400" />
+                                  </div>
+                                )}
+                                {!property.image_url && (
+                                  <div className="absolute -top-1 -right-1 bg-orange-500 rounded-full p-0.5">
+                                    <AlertCircle size={12} className="text-white" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2">
+                                  <p className="font-medium text-gray-900">{property.street_address}</p>
+                                  {!property.image_url && (
+                                    <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">
+                                      No Image
+                                    </span>
+                                  )}
+                                </div>
                                 <p className="text-sm text-gray-600">
                                   {property.city}, {property.state} {property.zip_code}
                                 </p>
