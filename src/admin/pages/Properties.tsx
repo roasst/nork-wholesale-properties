@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Plus, Edit, Trash2, Search, Home, AlertCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Home, AlertCircle, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { AdminLayout } from '../components/AdminLayout';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { PendingPropertyCard } from '../components/PendingPropertyCard';
 import { useAdminProperties } from '../hooks/useAdminProperties';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { formatCurrency } from '../../lib/utils';
+import { formatCurrency, getAdminStatusLabel } from '../../lib/utils';
 import { supabase } from '../../lib/supabase';
 import { Property } from '../../types';
 
@@ -85,6 +85,38 @@ export const Properties = () => {
       refetch();
     } catch (error) {
       showError('Failed to restore property');
+    }
+  };
+
+  const handleToggleVisibility = async (id: string, currentValue: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('properties')
+        .update({ is_active: !currentValue })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      success(currentValue ? 'Property hidden from website' : 'Property now visible on website');
+      refetch();
+    } catch (error) {
+      showError('Failed to update property visibility');
+    }
+  };
+
+  const handleApproveProperty = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('properties')
+        .update({ status: 'Available', is_active: true })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      success('Property approved and is now live');
+      refetch();
+    } catch (error) {
+      showError('Failed to approve property');
     }
   };
 
@@ -250,8 +282,8 @@ export const Properties = () => {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Status
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Active
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Visibility
                         </th>
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Actions
@@ -285,27 +317,46 @@ export const Properties = () => {
                             <span className="text-sm text-gray-900">{property.property_type}</span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              property.status === 'Available' ? 'bg-green-100 text-green-800' :
-                              property.status === 'Under Contract' ? 'bg-blue-100 text-blue-800' :
-                              property.status === 'Sold' ? 'bg-gray-100 text-gray-800' :
-                              'bg-amber-100 text-amber-800'
-                            }`}>
-                              {property.status}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                property.status === 'Available' ? 'bg-green-100 text-green-800' :
+                                property.status === 'Under Contract' ? 'bg-blue-100 text-blue-800' :
+                                property.status === 'Sold' ? 'bg-gray-100 text-gray-800' :
+                                'bg-amber-100 text-amber-800'
+                              }`}>
+                                {getAdminStatusLabel(property.status)}
+                              </span>
+                              {property.status === 'pending' && canEditProperties && (
+                                <button
+                                  onClick={() => handleApproveProperty(property.id)}
+                                  className="text-green-600 hover:text-green-700 p-1"
+                                  title="Approve Property"
+                                >
+                                  <CheckCircle size={18} />
+                                </button>
+                              )}
+                            </div>
                           </td>
-                          <td className="px-6 py-4">
-                            <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                property.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                              }`}
-                            >
-                              {property.is_active ? 'Yes' : 'No'}
-                            </span>
+                          <td className="px-6 py-4 text-center">
+                            {canEditProperties ? (
+                              <button
+                                onClick={() => handleToggleVisibility(property.id, property.is_active)}
+                                className={`p-1 rounded hover:bg-gray-100 transition-colors ${
+                                  property.is_active ? 'text-green-600' : 'text-gray-400'
+                                }`}
+                                title={property.is_active ? 'Visible on website - Click to hide' : 'Hidden from website - Click to show'}
+                              >
+                                {property.is_active ? <Eye size={20} /> : <EyeOff size={20} />}
+                              </button>
+                            ) : (
+                              <span className={property.is_active ? 'text-green-600' : 'text-gray-400'}>
+                                {property.is_active ? <Eye size={20} className="mx-auto" /> : <EyeOff size={20} className="mx-auto" />}
+                              </span>
+                            )}
                           </td>
                           <td className="px-6 py-4 text-right">
                             <div className="flex items-center justify-end gap-2">
-                              {canEditProperties && property.is_active && (
+                              {canEditProperties && (
                                 <Link
                                   to={`/admin/properties/edit/${property.id}`}
                                   className="text-blue-600 hover:text-blue-700 p-1"
@@ -325,24 +376,13 @@ export const Properties = () => {
                                       <Trash2 size={18} />
                                     </button>
                                   ) : (
-                                    <>
-                                      {canEditProperties && (
-                                        <button
-                                          onClick={() => handleRestore(property.id)}
-                                          className="text-green-600 hover:text-green-700 px-3 py-1 rounded border border-green-600 hover:bg-green-50 text-sm font-medium mr-2"
-                                          title="Restore"
-                                        >
-                                          Restore
-                                        </button>
-                                      )}
-                                      <button
-                                        onClick={() => handlePermanentDeleteClick(property)}
-                                        className="text-red-600 hover:text-red-700 px-3 py-1 rounded border border-red-600 hover:bg-red-50 text-sm font-medium"
-                                        title="Delete Forever"
-                                      >
-                                        Delete Forever
-                                      </button>
-                                    </>
+                                    <button
+                                      onClick={() => handlePermanentDeleteClick(property)}
+                                      className="text-red-600 hover:text-red-700 p-1"
+                                      title="Delete Forever"
+                                    >
+                                      <Trash2 size={18} />
+                                    </button>
                                   )}
                                 </>
                               )}

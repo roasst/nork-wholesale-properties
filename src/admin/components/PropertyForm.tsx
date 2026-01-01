@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import { Property } from '../../types';
 import { PropertyFormData } from '../types';
 import { US_STATES, PROPERTY_TYPES, PROPERTY_STATUSES } from '../utils/rolePermissions';
@@ -347,18 +348,38 @@ export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) =>
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            name="is_active"
-            id="is_active"
-            checked={formData.is_active}
-            onChange={handleChange}
-            className="w-4 h-4 text-[#7CB342] border-gray-300 rounded focus:ring-[#7CB342]"
-          />
-          <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
-            Active (visible on public website)
-          </label>
+        <div className="border-t border-gray-200 pt-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 mt-0.5">
+                {formData.is_active ? (
+                  <Eye className="text-blue-600" size={20} />
+                ) : (
+                  <EyeOff className="text-gray-500" size={20} />
+                )}
+              </div>
+              <div className="flex-1">
+                <label htmlFor="is_active" className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="is_active"
+                    id="is_active"
+                    checked={formData.is_active}
+                    onChange={handleChange}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-semibold text-gray-900">
+                    Visible on Website
+                  </span>
+                </label>
+                <p className="text-sm text-gray-600 mt-1 ml-6">
+                  {formData.is_active
+                    ? 'This property is currently visible to the public on your website.'
+                    : 'This property is hidden from the public website. Only admins can see it.'}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

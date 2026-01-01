@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Bed, Bath, Square, Phone, MessageCircle, Send, CreditCard } from 'lucide-react';
 import { useProperty } from '../hooks/useProperty';
-import { formatCurrency, getStatusColor } from '../lib/utils';
+import { formatCurrency, getStatusColor, getPublicStatusLabel } from '../lib/utils';
 import { InquiryForm } from '../components/InquiryForm';
 import { MobileCTABar } from '../components/MobileCTABar';
 import { ComingSoonModal } from '../components/ComingSoonModal';
@@ -96,7 +96,7 @@ export const PropertyDetailPage = () => {
               />
               <div className="absolute top-4 right-4">
                 <span className={`${getStatusColor(property.status)} text-white text-sm font-bold px-4 py-2 rounded-full shadow-lg`}>
-                  {property.status}
+                  {getPublicStatusLabel(property.status)}
                 </span>
               </div>
             </div>

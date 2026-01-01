@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Bed, Bath, Square } from 'lucide-react';
 import { Property } from '../types';
-import { formatCurrency, getStatusColor } from '../lib/utils';
+import { formatCurrency, getStatusColor, getPublicStatusLabel } from '../lib/utils';
 import { IMAGES } from '../config/branding';
 
 interface PropertyCardProps {
@@ -27,7 +27,7 @@ export const PropertyCard = ({ property }: PropertyCardProps) => {
         />
         <div className="absolute top-3 right-3">
           <span className={`${getStatusColor(property.status)} text-white text-xs font-bold px-3 py-1 rounded-full`}>
-            {property.status}
+            {getPublicStatusLabel(property.status)}
           </span>
         </div>
         <div className="absolute top-3 left-3">
