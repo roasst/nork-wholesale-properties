@@ -51,7 +51,7 @@ export const Dashboard = () => {
         const activeProperties = propertiesResult.data.filter((p) => p.is_active).length;
         const underContract = propertiesResult.data.filter((p) => p.status === 'Under Contract').length;
         const sold = propertiesResult.data.filter((p) => p.status === 'Sold').length;
-        const needsImage = propertiesResult.data.filter((p) => !p.image_url && p.status !== 'pending').length;
+        const needsImage = propertiesResult.data.filter((p) => p.needs_image && p.status !== 'pending').length;
 
         setStats((prev) => ({
           ...prev,

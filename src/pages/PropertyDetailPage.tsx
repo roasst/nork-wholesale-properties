@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Bed, Bath, Square, Phone, MessageCircle, Send, CreditCard } from 'lucide-react';
+import { ArrowLeft, Bed, Bath, Square, Phone, MessageCircle, Send, CreditCard, Share2 } from 'lucide-react';
 import { useProperty } from '../hooks/useProperty';
 import { formatCurrency, getStatusColor, getPublicStatusLabel } from '../lib/utils';
 import { InquiryForm } from '../components/InquiryForm';
 import { MobileCTABar } from '../components/MobileCTABar';
 import { ComingSoonModal } from '../components/ComingSoonModal';
+import { ShareProperty } from '../components/ShareProperty';
 import { CONTACT_INFO } from '../config/contact';
 import { IMAGES } from '../config/branding';
 
@@ -120,8 +121,20 @@ export const PropertyDetailPage = () => {
                         <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 break-words">{formatCurrency(property.asking_price)}</p>
                       </div>
                       <div>
-                        <p className="text-xs md:text-sm text-gray-600 mb-1">ARV</p>
-                        <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 break-words">{formatCurrency(property.arv)}</p>
+                        <p className="text-xs md:text-sm text-gray-600 mb-1">ARV (After Repair Value)</p>
+                        {property.arv && property.arv > 0 ? (
+                          <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-600 break-words">{formatCurrency(property.arv)}</p>
+                        ) : (
+                          <div>
+                            <p className="text-sm text-gray-700 mb-2">Not yet analyzed</p>
+                            <a
+                              href="#contact"
+                              className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                            >
+                              📊 Request Free ARV Analysis
+                            </a>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -165,6 +178,14 @@ export const PropertyDetailPage = () => {
                       </div>
                     </div>
                   )}
+
+                  <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Share2 className="text-gray-600" size={20} />
+                      <h3 className="text-lg font-semibold text-gray-900">Share This Property</h3>
+                    </div>
+                    <ShareProperty property={property} />
+                  </div>
 
                   <div className="hidden lg:block">
                     <h2 className="text-2xl font-bold text-gray-900 mb-4">Contact Options</h2>

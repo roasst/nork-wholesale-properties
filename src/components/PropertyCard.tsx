@@ -40,7 +40,11 @@ export const PropertyCard = ({ property }: PropertyCardProps) => {
       <div className="p-4">
         <div className="mb-2">
           <p className="text-2xl md:text-3xl font-bold text-gray-900 break-words">{formatCurrency(property.asking_price)}</p>
-          <p className="text-sm text-gray-600 mt-1">ARV: {formatCurrency(property.arv)}</p>
+          {property.arv && property.arv > 0 ? (
+            <p className="text-sm text-gray-600 mt-1">ARV: {formatCurrency(property.arv)}</p>
+          ) : (
+            <p className="text-sm text-blue-600 mt-1 hover:underline">📊 Request ARV Analysis</p>
+          )}
         </div>
 
         <p className="text-sm text-gray-700 mb-3 line-clamp-2">

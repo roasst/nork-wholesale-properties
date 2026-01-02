@@ -17,6 +17,7 @@ export interface Property {
   square_footage: number;
   status: PropertyStatus;
   image_url: string | null;
+  needs_image: boolean;
   comments: string | null;
   is_active: boolean;
   wholesaler_id: string | null;

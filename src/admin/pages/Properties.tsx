@@ -4,6 +4,7 @@ import { Plus, Edit, Trash2, Search, Home, AlertCircle, Eye, EyeOff, CheckCircle
 import { AdminLayout } from '../components/AdminLayout';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { PendingPropertyCard } from '../components/PendingPropertyCard';
+import { BulkApproveSection } from '../components/BulkApproveSection';
 import { useAdminProperties } from '../hooks/useAdminProperties';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -45,9 +46,9 @@ export const Properties = () => {
     : properties;
 
   if (imageFilter === 'has-image') {
-    filteredProperties = filteredProperties.filter((p) => p.image_url);
+    filteredProperties = filteredProperties.filter((p) => !p.needs_image);
   } else if (imageFilter === 'needs-image') {
-    filteredProperties = filteredProperties.filter((p) => !p.image_url);
+    filteredProperties = filteredProperties.filter((p) => p.needs_image);
   }
 
   const pendingProperties = filteredProperties.filter(p => p.status === 'pending');
@@ -181,8 +182,9 @@ export const Properties = () => {
     setSearchParams(newParams);
   };
 
-  const needsImageCount = properties.filter((p) => !p.image_url && p.status !== 'pending').length;
+  const needsImageCount = properties.filter((p) => p.needs_image && p.status !== 'pending').length;
   const hiddenCount = properties.filter((p) => !p.is_active).length;
+  const visibleCount = properties.filter((p) => p.is_active && p.status !== 'pending').length;
   const totalCount = properties.length;
 
   return (
@@ -192,7 +194,7 @@ export const Properties = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Properties</h1>
             <p className="text-sm text-gray-600 mt-1">
-              {totalCount} total • {hiddenCount} hidden • {needsImageCount} need images • {pendingCount} pending review
+              {totalCount} total • {visibleCount} visible • {hiddenCount} hidden • {needsImageCount} need images • {pendingCount} pending review
             </p>
           </div>
           {canEditProperties && (
@@ -323,6 +325,8 @@ export const Properties = () => {
           </div>
         ) : (
           <>
+            {statusFilter === 'pending' && <BulkApproveSection onRefresh={refetch} />}
+
             {pendingProperties.length > 0 && (
               <div className="space-y-4">
                 <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">

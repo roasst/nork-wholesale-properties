@@ -130,8 +130,10 @@ export const Users = () => {
   };
 
   const availableRoles: UserRole[] = currentUserProfile?.role === 'owner'
-    ? ['admin', 'editor', 'viewer']
-    : ['editor', 'viewer'];
+    ? ['owner', 'admin', 'viewer']
+    : currentUserProfile?.role === 'admin'
+    ? ['viewer']
+    : [];
 
   return (
     <AdminLayout>
@@ -304,10 +306,19 @@ export const Users = () => {
                     >
                       {availableRoles.map((role) => (
                         <option key={role} value={role}>
-                          {role.charAt(0).toUpperCase() + role.slice(1)}
+                          {role === 'owner' && 'Owner (Full Access)'}
+                          {role === 'admin' && 'Admin (Manage Properties)'}
+                          {role === 'viewer' && 'Viewer (Read Only)'}
+                          {role === 'editor' && 'Editor'}
                         </option>
                       ))}
                     </select>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {inviteRole === 'owner' && 'Full access to all features, can invite other users'}
+                      {inviteRole === 'admin' && 'Can manage properties and invite viewers'}
+                      {inviteRole === 'viewer' && 'Read-only access to admin panel'}
+                      {inviteRole === 'editor' && 'Can edit properties'}
+                    </p>
                   </div>
                 </div>
 
