@@ -21,6 +21,7 @@ import { Users } from './admin/pages/Users';
 import { Profile } from './admin/pages/Profile';
 import { Wholesalers } from './admin/pages/Wholesalers';
 import { WholesalerDetail } from './admin/pages/WholesalerDetail';
+import { OwnerAnalytics } from './admin/pages/OwnerAnalytics';
 
 function App() {
   return (
@@ -94,6 +95,14 @@ function App() {
             element={
               <ProtectedRoute requiredRoles={['owner', 'admin']}>
                 <Users />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/analytics"
+            element={
+              <ProtectedRoute requiredRoles={['owner']}>
+                <OwnerAnalytics />
               </ProtectedRoute>
             }
           />

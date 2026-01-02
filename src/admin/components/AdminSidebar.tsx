@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Home, MessageSquare, Users, X, Building2 } from 'lucide-react';
+import { LayoutDashboard, Home, MessageSquare, Users, X, Building2, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { usePendingCount } from '../hooks/usePendingCount';
 
@@ -10,7 +10,7 @@ interface AdminSidebarProps {
 
 export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
   const location = useLocation();
-  const { canManageUsers } = useAuth();
+  const { canManageUsers, isOwner } = useAuth();
   const pendingCount = usePendingCount();
 
   const navItems = [
@@ -19,6 +19,7 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
     { path: '/admin/inquiries', icon: MessageSquare, label: 'Inquiries' },
     { path: '/admin/wholesalers', icon: Building2, label: 'Wholesalers' },
     ...(canManageUsers ? [{ path: '/admin/users', icon: Users, label: 'Users' }] : []),
+    ...(isOwner ? [{ path: '/admin/analytics', icon: TrendingUp, label: 'Analytics', ownerOnly: true }] : []),
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -63,6 +64,13 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
                 >
                   <Icon size={20} />
                   <span className="flex-1">{item.label}</span>
+                  {(item as any).ownerOnly && (
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      active ? 'bg-white text-[#7CB342]' : 'bg-purple-100 text-purple-700'
+                    }`}>
+                      Owner
+                    </span>
+                  )}
                   {item.badge != null && item.badge > 0 && (
                     <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${
                       active
