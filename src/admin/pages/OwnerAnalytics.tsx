@@ -52,7 +52,7 @@ export const OwnerAnalytics = () => {
 
         <div>
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Today's Metrics</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             <MetricCard
               title="Emails Processed Today"
               value={analytics.today.emails}
@@ -72,18 +72,25 @@ export const OwnerAnalytics = () => {
               color="red"
             />
             <MetricCard
-              title="Cost Per Property Today"
+              title="Cost Per Property"
               value={analytics.today.properties > 0 ? `$${analytics.today.cost_per_property.toFixed(4)}` : '-'}
-              subtitle={analytics.today.properties > 0 ? `${analytics.today.properties} properties` : 'No properties today'}
+              subtitle={analytics.today.properties > 0 ? `${analytics.today.properties} properties` : 'No properties'}
               icon={TrendingUp}
               color="orange"
+            />
+            <MetricCard
+              title="Cost Per Email"
+              value={analytics.today.emails > 0 ? `$${analytics.today.cost_per_email.toFixed(4)}` : '-'}
+              subtitle={analytics.today.emails > 0 ? `${analytics.today.emails} emails` : 'No emails'}
+              icon={TrendingUp}
+              color="purple"
             />
           </div>
         </div>
 
         <div>
           <h2 className="text-xl font-semibold text-gray-900 mb-4">This Month's Metrics</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             <MetricCard
               title="Emails This Month"
               value={analytics.month.emails}
@@ -103,18 +110,25 @@ export const OwnerAnalytics = () => {
               color="red"
             />
             <MetricCard
-              title="Avg Cost Per Property"
+              title="Cost Per Property"
               value={analytics.month.properties > 0 ? `$${analytics.month.cost_per_property.toFixed(4)}` : '-'}
-              subtitle={analytics.month.properties > 0 ? `${analytics.month.properties} properties` : 'No properties this month'}
+              subtitle={analytics.month.properties > 0 ? `${analytics.month.properties} properties` : 'No properties'}
               icon={TrendingUp}
               color="orange"
+            />
+            <MetricCard
+              title="Cost Per Email"
+              value={analytics.month.emails > 0 ? `$${analytics.month.cost_per_email.toFixed(4)}` : '-'}
+              subtitle={analytics.month.emails > 0 ? `${analytics.month.emails} emails` : 'No emails'}
+              icon={TrendingUp}
+              color="purple"
             />
           </div>
         </div>
 
         <div>
           <h2 className="text-xl font-semibold text-gray-900 mb-4">All Time Metrics</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             <MetricCard
               title="Total Emails Processed"
               value={analytics.allTime.emails}
@@ -136,9 +150,16 @@ export const OwnerAnalytics = () => {
             <MetricCard
               title="Lifetime Cost Per Property"
               value={analytics.allTime.properties > 0 ? `$${analytics.allTime.cost_per_property.toFixed(4)}` : '-'}
-              subtitle={analytics.allTime.properties > 0 ? `${analytics.allTime.properties} properties` : 'No properties yet'}
+              subtitle={analytics.allTime.properties > 0 ? `${analytics.allTime.properties} properties` : 'No properties'}
               icon={TrendingUp}
               color="orange"
+            />
+            <MetricCard
+              title="Lifetime Cost Per Email"
+              value={analytics.allTime.emails > 0 ? `$${analytics.allTime.cost_per_email.toFixed(4)}` : '-'}
+              subtitle={analytics.allTime.emails > 0 ? `${analytics.allTime.emails} emails` : 'No emails'}
+              icon={TrendingUp}
+              color="purple"
             />
           </div>
         </div>

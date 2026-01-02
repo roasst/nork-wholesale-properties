@@ -14,6 +14,7 @@ export const ProfitabilityCalculator = ({
   monthlyCost,
 }: ProfitabilityCalculatorProps) => {
   const [chargePerProperty, setChargePerProperty] = useState(0.05);
+  const [monthlyFixedCosts, setMonthlyFixedCosts] = useState(50);
   const [starterPrice, setStarterPrice] = useState(29);
   const [starterLimit, setStarterLimit] = useState(100);
   const [proPrice, setProPrice] = useState(79);
@@ -24,25 +25,45 @@ export const ProfitabilityCalculator = ({
   const [proTenants, setProTenants] = useState(0);
   const [enterpriseTenants, setEnterpriseTenants] = useState(0);
 
+  const profitPerProperty = chargePerProperty - actualCostPerProperty;
+  const profitMarginPerProperty = chargePerProperty > 0 ? (profitPerProperty / chargePerProperty) * 100 : 0;
+
   const usageBasedRevenue = monthlyProperties * chargePerProperty;
-  const usageBasedProfit = usageBasedRevenue - monthlyCost;
+  const usageBasedProfit = usageBasedRevenue - monthlyCost - monthlyFixedCosts;
   const usageBasedMargin = usageBasedRevenue > 0 ? (usageBasedProfit / usageBasedRevenue) * 100 : 0;
 
   const subscriptionRevenue =
     (starterTenants * starterPrice) +
     (proTenants * proPrice) +
     (enterpriseTenants * enterprisePrice);
-  const subscriptionProfit = subscriptionRevenue - monthlyCost;
+  const subscriptionProfit = subscriptionRevenue - monthlyCost - monthlyFixedCosts;
   const subscriptionMargin = subscriptionRevenue > 0 ? (subscriptionProfit / subscriptionRevenue) * 100 : 0;
 
   const suggestedMinPrice = actualCostPerProperty * 3;
-  const breakEvenProperties = actualCostPerProperty > 0 ? monthlyCost / actualCostPerProperty : 0;
+  const breakEvenProperties = profitPerProperty > 0 ? Math.ceil(monthlyFixedCosts / profitPerProperty) : 0;
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex items-center gap-2 mb-6">
         <TrendingUp className="text-green-600" size={24} />
         <h3 className="text-lg font-semibold text-gray-900">Profitability Calculator</h3>
+      </div>
+
+      <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <label className="block text-sm font-medium text-blue-900 mb-2">
+          Monthly Fixed Costs (hosting, tools, etc.)
+        </label>
+        <div className="relative max-w-xs">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+          <input
+            type="number"
+            step="1"
+            value={monthlyFixedCosts}
+            onChange={(e) => setMonthlyFixedCosts(parseFloat(e.target.value) || 0)}
+            className="w-full pl-7 pr-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <p className="text-xs text-blue-700 mt-1">Costs beyond GPT API usage (e.g., servers, database, etc.)</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -63,6 +84,24 @@ export const ProfitabilityCalculator = ({
                 className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
             </div>
+            <div className="mt-2 text-xs space-y-1">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Cost per property:</span>
+                <span className="font-medium text-gray-900">${actualCostPerProperty.toFixed(4)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Profit per property:</span>
+                <span className={`font-medium ${profitPerProperty >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  ${profitPerProperty.toFixed(4)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Margin per property:</span>
+                <span className={`font-medium ${profitMarginPerProperty >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {profitMarginPerProperty.toFixed(1)}%
+                </span>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-2 bg-gray-50 rounded-lg p-4">
@@ -71,8 +110,16 @@ export const ProfitabilityCalculator = ({
               <span className="font-semibold text-gray-900">{formatCurrency(usageBasedRevenue)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Monthly Cost:</span>
+              <span className="text-gray-600">GPT API Cost:</span>
               <span className="font-semibold text-red-600">{formatCurrency(monthlyCost)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Fixed Costs:</span>
+              <span className="font-semibold text-red-600">{formatCurrency(monthlyFixedCosts)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Total Costs:</span>
+              <span className="font-semibold text-red-600">{formatCurrency(monthlyCost + monthlyFixedCosts)}</span>
             </div>
             <div className="flex justify-between text-sm pt-2 border-t border-gray-200">
               <span className="font-medium text-gray-900">Net Profit:</span>
@@ -168,8 +215,16 @@ export const ProfitabilityCalculator = ({
               <span className="font-semibold text-gray-900">{formatCurrency(subscriptionRevenue)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Monthly Cost:</span>
+              <span className="text-gray-600">GPT API Cost:</span>
               <span className="font-semibold text-red-600">{formatCurrency(monthlyCost)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Fixed Costs:</span>
+              <span className="font-semibold text-red-600">{formatCurrency(monthlyFixedCosts)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Total Costs:</span>
+              <span className="font-semibold text-red-600">{formatCurrency(monthlyCost + monthlyFixedCosts)}</span>
             </div>
             <div className="flex justify-between text-sm pt-2 border-t border-gray-200">
               <span className="font-medium text-gray-900">Net Profit:</span>
@@ -187,18 +242,28 @@ export const ProfitabilityCalculator = ({
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-blue-50 rounded-lg p-4">
-          <p className="text-xs text-blue-600 font-medium mb-1">Current Cost Per Property</p>
+          <p className="text-xs text-blue-600 font-medium mb-1">GPT Cost Per Property</p>
           <p className="text-2xl font-bold text-blue-900">${actualCostPerProperty.toFixed(4)}</p>
+          <p className="text-xs text-blue-700 mt-1">Variable cost</p>
         </div>
         <div className="bg-green-50 rounded-lg p-4">
           <p className="text-xs text-green-600 font-medium mb-1">Suggested Minimum Price (3x)</p>
           <p className="text-2xl font-bold text-green-900">${suggestedMinPrice.toFixed(4)}</p>
+          <p className="text-xs text-green-700 mt-1">Healthy margin target</p>
+        </div>
+        <div className="bg-purple-50 rounded-lg p-4">
+          <p className="text-xs text-purple-600 font-medium mb-1">Profit Per Property</p>
+          <p className={`text-2xl font-bold ${profitPerProperty >= 0 ? 'text-purple-900' : 'text-red-600'}`}>
+            ${profitPerProperty.toFixed(4)}
+          </p>
+          <p className="text-xs text-purple-700 mt-1">At ${chargePerProperty.toFixed(2)} charge</p>
         </div>
         <div className="bg-orange-50 rounded-lg p-4">
           <p className="text-xs text-orange-600 font-medium mb-1">Breakeven Properties/Month</p>
-          <p className="text-2xl font-bold text-orange-900">{Math.ceil(breakEvenProperties)}</p>
+          <p className="text-2xl font-bold text-orange-900">{breakEvenProperties}</p>
+          <p className="text-xs text-orange-700 mt-1">To cover ${monthlyFixedCosts} fixed costs</p>
         </div>
       </div>
     </div>

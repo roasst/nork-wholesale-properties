@@ -10,6 +10,7 @@ export interface DailyMetrics {
   total_tokens: number;
   cost: number;
   cost_per_property: number;
+  cost_per_email: number;
 }
 
 export interface PlatformMetrics {
@@ -26,18 +27,21 @@ export interface AnalyticsSummary {
     properties: number;
     cost: number;
     cost_per_property: number;
+    cost_per_email: number;
   };
   month: {
     emails: number;
     properties: number;
     cost: number;
     cost_per_property: number;
+    cost_per_email: number;
   };
   allTime: {
     emails: number;
     properties: number;
     cost: number;
     cost_per_property: number;
+    cost_per_email: number;
   };
   dailyMetrics: DailyMetrics[];
   platformMetrics: PlatformMetrics[];
@@ -103,6 +107,7 @@ export const useOwnerAnalytics = () => {
       properties,
       cost,
       cost_per_property: properties > 0 ? cost / properties : 0,
+      cost_per_email: emails > 0 ? cost / emails : 0,
     };
   };
 
@@ -127,6 +132,7 @@ export const useOwnerAnalytics = () => {
       properties,
       cost,
       cost_per_property: properties > 0 ? cost / properties : 0,
+      cost_per_email: emails > 0 ? cost / emails : 0,
     };
   };
 
@@ -146,6 +152,7 @@ export const useOwnerAnalytics = () => {
       properties,
       cost,
       cost_per_property: properties > 0 ? cost / properties : 0,
+      cost_per_email: emails > 0 ? cost / emails : 0,
     };
   };
 
@@ -189,6 +196,7 @@ export const useOwnerAnalytics = () => {
     const metrics = Array.from(dailyMap.values());
     metrics.forEach((m) => {
       m.cost_per_property = m.properties > 0 ? m.cost / m.properties : 0;
+      m.cost_per_email = m.emails > 0 ? m.cost / m.emails : 0;
     });
 
     return metrics;
