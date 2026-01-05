@@ -1,0 +1,64 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700;600;400&amp;display=swap');
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#111827"/>
+
+  <!-- Grid pattern overlay for depth -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1f2937" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- Logo placeholder (text-based since we can't embed external images reliably in SVG) -->
+  <g transform="translate(600, 220)">
+    <!-- Logo circle background -->
+    <circle cx="0" cy="0" r="70" fill="#7CB342" opacity="0.2"/>
+    <circle cx="0" cy="0" r="60" fill="#7CB342" opacity="0.3"/>
+
+    <!-- Simple house/building icon representation -->
+    <path d="M -30 10 L 0 -25 L 30 10 L 30 40 L -30 40 Z" fill="#7CB342"/>
+    <rect x="-12" y="15" width="24" height="25" fill="#111827"/>
+    <rect x="-20" y="20" width="10" height="10" fill="#111827"/>
+    <rect x="10" y="20" width="10" height="10" fill="#111827"/>
+  </g>
+
+  <!-- Company Name -->
+  <text x="600" y="360"
+        font-family="Inter, system-ui, -apple-system, sans-serif"
+        font-size="72"
+        font-weight="700"
+        fill="#ffffff"
+        text-anchor="middle">
+    NORK GROUP
+  </text>
+
+  <!-- Tagline -->
+  <text x="600" y="420"
+        font-family="Inter, system-ui, -apple-system, sans-serif"
+        font-size="32"
+        font-weight="400"
+        fill="#7CB342"
+        text-anchor="middle">
+    Off-Market Deals. Cash Buyers Only.
+  </text>
+
+  <!-- Subtitle -->
+  <text x="600" y="480"
+        font-family="Inter, system-ui, -apple-system, sans-serif"
+        font-size="24"
+        font-weight="400"
+        fill="#9CA3AF"
+        text-anchor="middle">
+    Exclusive Wholesale Real Estate Investments
+  </text>
+
+  <!-- Accent line -->
+  <rect x="450" y="500" width="300" height="3" fill="#7CB342" rx="1.5"/>
+</svg>
