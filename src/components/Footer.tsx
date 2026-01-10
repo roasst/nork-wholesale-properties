@@ -1,4 +1,5 @@
 import { Phone, Mail, MapPin } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { CONTACT_INFO } from '../config/contact';
 import { BRANDING } from '../config/branding';
 
@@ -55,6 +56,12 @@ export const Footer = () => {
 
         <div className="mt-8 pt-8 border-t border-gray-800 text-center text-gray-400 text-sm">
           <p>&copy; {new Date().getFullYear()} {BRANDING.companyName}. All rights reserved.</p>
+          <Link
+            to="/admin/login"
+            className="inline-block mt-2 text-gray-500 hover:text-gray-300 transition-colors text-xs"
+          >
+            Staff Login
+          </Link>
         </div>
       </div>
     </footer>
