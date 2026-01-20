@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronDown, ChevronUp, Phone, Mail, Building2, TrendingUp, Calendar } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Phone, Mail, Building2, TrendingUp, Calendar, Plus } from 'lucide-react';
 import { AdminLayout } from '../components/AdminLayout';
 import { useWholesalers, toggleTrusted } from '../hooks/useWholesalers';
 import { TrustedToggle } from '../components/TrustedToggle';
+import { AddWholesalerModal } from '../components/AddWholesalerModal';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { canToggleTrusted } from '../utils/rolePermissions';
@@ -15,6 +16,7 @@ export const Wholesalers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'deals' | 'date' | 'name'>('deals');
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const { wholesalers, loading, error, refetch } = useWholesalers({
     search: searchTerm,
@@ -108,6 +110,14 @@ export const Wholesalers = () => {
           <option value="date">Sort by Last Deal</option>
           <option value="name">Sort by Name</option>
         </select>
+
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="inline-flex items-center gap-2 bg-[#7CB342] hover:bg-[#689F38] text-white font-semibold py-2 px-4 rounded-lg transition-colors whitespace-nowrap"
+        >
+          <Plus size={20} />
+          Add Wholesaler
+        </button>
       </div>
 
       {sortedWholesalers.length === 0 ? (
@@ -120,7 +130,7 @@ export const Wholesalers = () => {
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
@@ -146,107 +156,139 @@ export const Wholesalers = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {sortedWholesalers.map((wholesaler) => (
-                  <>
-                    <tr
-                      key={wholesaler.id}
-                      className="hover:bg-gray-50 cursor-pointer transition-colors"
-                      onClick={() => setExpandedId(expandedId === wholesaler.id ? null : wholesaler.id)}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-[#7CB342] flex items-center justify-center text-white font-bold">
-                            {wholesaler.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold text-gray-900">{wholesaler.name}</p>
-                            <p className="text-xs text-gray-500 flex items-center gap-1">
-                              <Mail size={12} />
-                              {wholesaler.email}
-                            </p>
-                          </div>
+                  <tr
+                    key={wholesaler.id}
+                    className="hover:bg-gray-50 cursor-pointer transition-colors"
+                    onClick={() => setExpandedId(expandedId === wholesaler.id ? null : wholesaler.id)}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#7CB342] flex items-center justify-center text-white font-bold flex-shrink-0">
+                          {wholesaler.name.charAt(0).toUpperCase()}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {wholesaler.company_name ? (
-                          <div className="flex items-center gap-1 text-sm text-gray-700">
-                            <Building2 size={14} />
-                            {wholesaler.company_name}
-                          </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 truncate">{wholesaler.name}</p>
+                          <p className="text-xs text-gray-500 flex items-center gap-1 truncate">
+                            <Mail size={12} />
+                            {wholesaler.email}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {wholesaler.company_name ? (
+                        <div className="flex items-center gap-1 text-sm text-gray-700">
+                          <Building2 size={14} />
+                          <span className="truncate max-w-[150px]">{wholesaler.company_name}</span>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-400">-</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-1">
+                        <TrendingUp size={16} className="text-[#7CB342]" />
+                        <span className="text-sm font-semibold text-gray-900">{wholesaler.total_deals}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                        <Calendar size={14} />
+                        {formatDate(wholesaler.last_deal_date)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <TrustedToggle
+                        isTrusted={wholesaler.is_trusted}
+                        onChange={() => handleToggleTrusted(wholesaler.id, wholesaler.is_trusted)}
+                        disabled={!canToggle}
+                      />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewDeals(wholesaler.id);
+                          }}
+                          className="text-[#7CB342] hover:text-[#689F38] text-sm font-medium"
+                        >
+                          View Deals
+                        </button>
+                        {expandedId === wholesaler.id ? (
+                          <ChevronUp size={16} className="text-gray-400" />
                         ) : (
-                          <span className="text-sm text-gray-400">-</span>
+                          <ChevronDown size={16} className="text-gray-400" />
                         )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-1">
-                          <TrendingUp size={16} className="text-[#7CB342]" />
-                          <span className="text-sm font-semibold text-gray-900">{wholesaler.total_deals}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-1 text-sm text-gray-600">
-                          <Calendar size={14} />
-                          {formatDate(wholesaler.last_deal_date)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <TrustedToggle
-                          isTrusted={wholesaler.is_trusted}
-                          onChange={() => handleToggleTrusted(wholesaler.id, wholesaler.is_trusted)}
-                          disabled={!canToggle}
-                        />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleViewDeals(wholesaler.id);
-                            }}
-                            className="text-[#7CB342] hover:text-[#689F38] text-sm font-medium"
-                          >
-                            View Deals
-                          </button>
-                          {expandedId === wholesaler.id ? (
-                            <ChevronUp size={16} className="text-gray-400" />
-                          ) : (
-                            <ChevronDown size={16} className="text-gray-400" />
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                    {expandedId === wholesaler.id && (
-                      <tr>
-                        <td colSpan={6} className="px-6 py-4 bg-gray-50">
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2">
-                              {wholesaler.phone && (
-                                <a
-                                  href={`tel:${wholesaler.phone}`}
-                                  className="flex items-center gap-2 text-sm text-gray-700 hover:text-[#7CB342]"
-                                >
-                                  <Phone size={16} />
-                                  {wholesaler.phone}
-                                </a>
-                              )}
-                            </div>
-                            {wholesaler.notes && (
-                              <div>
-                                <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Notes</p>
-                                <p className="text-sm text-gray-700">{wholesaler.notes}</p>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </>
+                      </div>
+                    </td>
+                  </tr>
                 ))}
               </tbody>
             </table>
           </div>
+
+          <div className="md:hidden divide-y divide-gray-200">
+            {sortedWholesalers.map((wholesaler) => (
+              <div key={wholesaler.id} className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-12 h-12 rounded-full bg-[#7CB342] flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                    {wholesaler.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-base font-semibold text-gray-900 truncate">{wholesaler.name}</p>
+                        <a
+                          href={`mailto:${wholesaler.email}`}
+                          className="text-sm text-gray-600 hover:text-[#7CB342] truncate block"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {wholesaler.email}
+                        </a>
+                      </div>
+                      <TrustedToggle
+                        isTrusted={wholesaler.is_trusted}
+                        onChange={() => handleToggleTrusted(wholesaler.id, wholesaler.is_trusted)}
+                        disabled={!canToggle}
+                      />
+                    </div>
+
+                    {wholesaler.company_name && (
+                      <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
+                        <Building2 size={14} />
+                        {wholesaler.company_name}
+                      </p>
+                    )}
+
+                    <div className="flex items-center gap-4 mt-3">
+                      <span className="text-sm text-gray-600">
+                        <span className="font-semibold text-[#7CB342]">{wholesaler.total_deals}</span> deals
+                      </span>
+                      <button
+                        onClick={() => handleViewDeals(wholesaler.id)}
+                        className="text-[#7CB342] hover:text-[#689F38] text-sm font-medium"
+                      >
+                        View Deals →
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
       </div>
+
+      <AddWholesalerModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSuccess={() => {
+          refetch();
+          setShowAddModal(false);
+        }}
+      />
     </AdminLayout>
   );
 };

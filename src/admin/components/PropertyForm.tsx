@@ -6,6 +6,7 @@ import { PropertyFormData } from '../types';
 import { US_STATES, PROPERTY_TYPES, PROPERTY_STATUSES } from '../utils/rolePermissions';
 import { ImageUploader } from './ImageUploader';
 import { RichTextEditor } from './RichTextEditor';
+import { WholesalerSelector } from './WholesalerSelector';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -362,8 +363,23 @@ export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) =>
             placeholder="Add notes about the property, comparable sales, etc."
           />
         </div>
+      </div>
 
-        <div className="border-t border-gray-200 pt-6">
+      <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
+        <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-4">
+          Wholesaler
+        </h3>
+        <WholesalerSelector
+          value={formData.wholesaler_id}
+          onChange={(wholesalerId) => setFormData(prev => ({ ...prev, wholesaler_id: wholesalerId }))}
+        />
+        <p className="text-xs text-gray-500">
+          Select the wholesaler who sent this deal, or create a new one if they're not in the system.
+        </p>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
+        <div className="border-t border-gray-200 pt-0">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 mt-0.5">
