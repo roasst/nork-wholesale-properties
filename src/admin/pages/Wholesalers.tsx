@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronDown, ChevronUp, Phone, Mail, Building2, TrendingUp, Calendar, Plus } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Phone, Mail, Building2, TrendingUp, Calendar, Plus, Pencil } from 'lucide-react';
+import { Wholesaler } from '../../types';
 import { AdminLayout } from '../components/AdminLayout';
 import { useWholesalers, toggleTrusted } from '../hooks/useWholesalers';
 import { TrustedToggle } from '../components/TrustedToggle';
 import { AddWholesalerModal } from '../components/AddWholesalerModal';
+import { EditWholesalerModal } from '../components/EditWholesalerModal';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { canToggleTrusted } from '../utils/rolePermissions';
@@ -17,6 +19,7 @@ export const Wholesalers = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'deals' | 'date' | 'name'>('deals');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingWholesaler, setEditingWholesaler] = useState<Wholesaler | null>(null);
 
   const { wholesalers, loading, error, refetch } = useWholesalers({
     search: searchTerm,
@@ -205,7 +208,17 @@ export const Wholesalers = () => {
                       />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingWholesaler(wholesaler);
+                          }}
+                          className="text-gray-500 hover:text-[#7CB342] transition-colors"
+                          title="Edit wholesaler"
+                        >
+                          <Pencil size={16} />
+                        </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -266,6 +279,13 @@ export const Wholesalers = () => {
                         <span className="font-semibold text-[#7CB342]">{wholesaler.total_deals}</span> deals
                       </span>
                       <button
+                        onClick={() => setEditingWholesaler(wholesaler)}
+                        className="text-gray-500 hover:text-[#7CB342] text-sm font-medium flex items-center gap-1"
+                      >
+                        <Pencil size={14} />
+                        Edit
+                      </button>
+                      <button
                         onClick={() => handleViewDeals(wholesaler.id)}
                         className="text-[#7CB342] hover:text-[#689F38] text-sm font-medium"
                       >
@@ -287,6 +307,16 @@ export const Wholesalers = () => {
         onSuccess={() => {
           refetch();
           setShowAddModal(false);
+        }}
+      />
+
+      <EditWholesalerModal
+        isOpen={!!editingWholesaler}
+        wholesaler={editingWholesaler}
+        onClose={() => setEditingWholesaler(null)}
+        onSuccess={() => {
+          refetch();
+          success('Wholesaler updated successfully');
         }}
       />
     </AdminLayout>
