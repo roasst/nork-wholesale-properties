@@ -9,6 +9,21 @@ interface AddWholesalerModalProps {
   onSuccess: () => void;
 }
 
+const formatPhoneNumber = (value: string): string => {
+  const digits = value.replace(/\D/g, '');
+  const limited = digits.slice(0, 10);
+
+  if (limited.length === 0) return '';
+  if (limited.length <= 3) return `(${limited}`;
+  if (limited.length <= 6) return `(${limited.slice(0, 3)}) ${limited.slice(3)}`;
+  return `(${limited.slice(0, 3)}) ${limited.slice(3, 6)}-${limited.slice(6)}`;
+};
+
+const isValidPhone = (value: string): boolean => {
+  const digits = value.replace(/\D/g, '');
+  return digits.length === 10;
+};
+
 export const AddWholesalerModal = ({ isOpen, onClose, onSuccess }: AddWholesalerModalProps) => {
   const { success, error: showError } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,6 +52,8 @@ export const AddWholesalerModal = ({ isOpen, onClose, onSuccess }: AddWholesaler
 
     if (!formData.phone.trim()) {
       newErrors.phone = 'Phone is required';
+    } else if (!isValidPhone(formData.phone)) {
+      newErrors.phone = 'Please enter a valid 10-digit phone number';
     }
 
     setErrors(newErrors);
@@ -45,7 +62,13 @@ export const AddWholesalerModal = ({ isOpen, onClose, onSuccess }: AddWholesaler
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    if (name === 'phone') {
+      setFormData(prev => ({ ...prev, phone: formatPhoneNumber(value) }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
