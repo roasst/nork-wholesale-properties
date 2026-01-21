@@ -65,6 +65,60 @@ git push
 
 ---
 
+### ✅ Edit #4: Property Form Layout - Two Column Top Row
+**Date:** 2026-01-20
+**Status:** Complete
+**File:** `src/admin/components/PropertyForm.tsx`
+
+**Before (vertical/stacked):**
+```
+┌─────────────────────────────────────────────────┐
+│         Property Image (full width)             │
+└─────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│         Property Address                        │
+└─────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│         Property Details                        │
+└─────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│         Wholesaler                              │
+└─────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│         Visible on Website                      │
+└─────────────────────────────────────────────────┘
+```
+
+**After (two-column top):**
+```
+┌────────────────────────┬────────────────────────┐
+│                        │  Wholesaler            │
+│   Property Image       ├────────────────────────┤
+│   (3 cols / 60%)       │  Visibility            │
+│                        │  (2 cols / 40%)        │
+└────────────────────────┴────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│         Property Address                        │
+└─────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│         Property Details                        │
+└─────────────────────────────────────────────────┘
+```
+
+**Key Changes:**
+- ✅ Image (left) + Wholesaler/Visibility (right) in same row on desktop
+- ✅ Uses 5-column grid: Image 3 cols, Sidebar 2 cols
+- ✅ Removed duplicate Wholesaler section at bottom
+- ✅ Removed duplicate Visibility section at bottom
+- ✅ Mobile: stacks vertically (Image → Wholesaler → Visibility → Address → Details)
+
+**Benefits:**
+- Better use of horizontal space on desktop
+- Related metadata (wholesaler, visibility) grouped together
+- Cleaner, shorter form without duplicates
+
+---
+
 ## Pending Feedback
 - [ ] User to test on live site
 

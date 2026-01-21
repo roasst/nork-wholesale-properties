@@ -190,30 +190,89 @@ export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) =>
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
-          <div className="flex items-center justify-between border-b border-gray-200 pb-4">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Property Image
-            </h3>
+        {/* TOP ROW: Image (left) + Wholesaler & Visibility (right) */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          {/* LEFT: Property Image - takes 3 columns */}
+          <div className="lg:col-span-3 bg-white rounded-lg shadow-md p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Property Image
+              </h3>
+              {!formData.image_url && (
+                <span className="text-xs bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+                  <AlertCircle size={12} />
+                  Image Required
+                </span>
+              )}
+            </div>
+            <ImageUploader
+              currentImageUrl={formData.image_url}
+              onImageUploaded={(url) => setFormData((prev) => ({ ...prev, image_url: url, is_active: true }))}
+              onImageRemoved={() => setFormData((prev) => ({ ...prev, image_url: null }))}
+            />
             {!formData.image_url && (
-              <span className="text-xs bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-semibold flex items-center gap-1">
-                <AlertCircle size={12} />
-                Image Required
-              </span>
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                <p className="text-xs text-orange-800">
+                  <strong>Note:</strong> Properties without images will be hidden from the public website by default. Upload an image to make this property visible.
+                </p>
+              </div>
             )}
           </div>
-          <ImageUploader
-            currentImageUrl={formData.image_url}
-            onImageUploaded={(url) => setFormData((prev) => ({ ...prev, image_url: url, is_active: true }))}
-            onImageRemoved={() => setFormData((prev) => ({ ...prev, image_url: null }))}
-          />
-          {!formData.image_url && (
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-              <p className="text-xs text-orange-800">
-                <strong>Note:</strong> Properties without images will be hidden from the public website by default. Upload an image to make this property visible.
+
+          {/* RIGHT: Wholesaler + Visibility - takes 2 columns */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Wholesaler Card */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-4 mb-4">
+                Wholesaler
+              </h3>
+              <WholesalerSelector
+                value={formData.wholesaler_id}
+                onChange={(wholesalerId) => setFormData(prev => ({ ...prev, wholesaler_id: wholesalerId }))}
+              />
+              <p className="text-xs text-gray-500 mt-3">
+                Select the wholesaler who sent this deal.
               </p>
             </div>
-          )}
+
+            {/* Visibility Card */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-4 mb-4">
+                Visibility
+              </h3>
+              <div className={`rounded-lg p-4 ${formData.is_active ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200'}`}>
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    {formData.is_active ? (
+                      <Eye className="text-green-600" size={20} />
+                    ) : (
+                      <EyeOff className="text-gray-400" size={20} />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <label htmlFor="is_active" className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="is_active"
+                        id="is_active"
+                        checked={formData.is_active}
+                        onChange={handleChange}
+                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      />
+                      <span className="text-sm font-semibold text-gray-900">
+                        Visible on Website
+                      </span>
+                    </label>
+                    <p className="text-xs text-gray-600 mt-1 ml-6">
+                      {formData.is_active
+                        ? 'Property is live on the public website.'
+                        : 'Property is hidden from the public.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
@@ -486,55 +545,6 @@ export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) =>
               onChange={(html) => setFormData((prev) => ({ ...prev, comments: html || null }))}
               placeholder="Add notes about the property, comparable sales, etc."
             />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
-          <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-4">
-            Wholesaler
-          </h3>
-          <WholesalerSelector
-            value={formData.wholesaler_id}
-            onChange={(wholesalerId) => setFormData(prev => ({ ...prev, wholesaler_id: wholesalerId }))}
-          />
-          <p className="text-xs text-gray-500">
-            Select the wholesaler who sent this deal, or create a new one if they're not in the system.
-          </p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
-          <div className="border-t border-gray-200 pt-0">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 mt-0.5">
-                  {formData.is_active ? (
-                    <Eye className="text-blue-600" size={20} />
-                  ) : (
-                    <EyeOff className="text-gray-500" size={20} />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <label htmlFor="is_active" className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="is_active"
-                      id="is_active"
-                      checked={formData.is_active}
-                      onChange={handleChange}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <span className="text-sm font-semibold text-gray-900">
-                      Visible on Website
-                    </span>
-                  </label>
-                  <p className="text-sm text-gray-600 mt-1 ml-6">
-                    {formData.is_active
-                      ? 'This property is currently visible to the public on your website.'
-                      : 'This property is hidden from the public website. Only admins can see it.'}
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
