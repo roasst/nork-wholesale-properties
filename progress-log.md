@@ -67,3 +67,42 @@ git push
 
 ## Pending Feedback
 - [ ] User to test on live site
+
+---
+
+### ✅ Feature: ZIP Code Auto-Fill (City, State, County)
+**Date:** 2025-01-21
+**Status:** Complete
+
+**Files:**
+- `src/data/zipCodeData.ts` - Florida ZIP database (~500+ ZIPs)
+- `src/admin/components/PropertyForm.tsx` - Auto-fill integration
+
+**How It Works:**
+1. User enters a 5-digit ZIP code in the property form
+2. System looks up city, state, and county from the FL database
+3. Auto-fills all three fields instantly
+4. County field gets "locked" with a green indicator
+5. Edit button allows override with confirmation dialog
+
+**ZIP Database Coverage:**
+- Miami-Dade, Broward, Palm Beach (all major cities)
+- Orange County (Orlando area)
+- Hillsborough, Pinellas (Tampa/St. Pete)
+- Duval, Clay, St. Johns (Jacksonville area)
+- Lee, Collier, Sarasota (SW Florida)
+- Brevard, Volusia (Space Coast/Daytona)
+- Leon, Escambia (Panhandle)
+- And many more FL counties
+
+**Visual Indicators:**
+- 🔒 Lock icon on auto-matched county
+- ✅ Green "Auto-matched from ZIP code" message
+- ✏️ Edit button to unlock
+- ⚠️ Confirmation dialog before manual override
+
+**Testing:**
+- [ ] Enter ZIP 33301 → Should show Fort Lauderdale, FL, Broward
+- [ ] Enter ZIP 32801 → Should show Orlando, FL, Orange
+- [ ] Enter ZIP 33139 → Should show Miami Beach, FL, Miami-Dade
+- [ ] Try editing locked county → Should show confirmation dialog
