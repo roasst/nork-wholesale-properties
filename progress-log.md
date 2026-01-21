@@ -7,46 +7,60 @@
 - [x] Read all wholesaler-related files
 - [x] Understand current architecture
 
-### Changes Made
+---
 
-#### ✅ Edit #1: Wired up EditWholesalerModal to Wholesalers.tsx
+### ✅ Edit #1: Wired up EditWholesalerModal
+**Status:** Complete
+
+---
+
+### ✅ Edit #2: UI Cleanup & Phone Display
 **File:** `src/admin/pages/Wholesalers.tsx`
 
-**Changes:**
-1. Added `Pencil` icon import from lucide-react
-2. Added `Wholesaler` type import
-3. Added `EditWholesalerModal` component import
-4. Added `editingWholesaler` state to track which wholesaler is being edited
-5. Added Edit button (pencil icon) in desktop table Actions column
-6. Added Edit button with text in mobile card view
-7. Rendered `EditWholesalerModal` at bottom of component
+**Removed:**
+- ❌ "View Deals" text link
+- ❌ Accordion toggle arrows (ChevronUp/ChevronDown)
+- ❌ "Last Deal" column
+- ❌ Sort dropdown (Sort by Deals/Date/Name)
+- ❌ Unused imports (useNavigate, ChevronDown, ChevronUp, Calendar)
+- ❌ Unused state (expandedId, sortBy)
+- ❌ Unused function (formatDate, handleViewDeals)
 
-**Features now working:**
-- Click pencil icon → opens edit modal
-- Edit name, email, phone, company, notes
-- Delete wholesaler with confirmation
-- Toast notification on success
+**Added:**
+- ✅ Phone number in Contact column (stacked under email)
+- ✅ Phone number clickable on mobile (tel: link)
+- ✅ Cleaner edit button with hover background
+
+**UI Changes:**
+| Before | After |
+|--------|-------|
+| 6 columns | 5 columns |
+| Sort dropdown | Removed |
+| View Deals + Arrows | Just Edit icon |
+| No phone visible | Phone shown under email |
+
+**Default Sort:** By total deals (descending) - hardcoded
 
 ---
 
 ## Deploy Instructions
 
-Run these commands in `C:\Projects\nork-wholesale-properties`:
-
 ```bash
+cd C:\Projects\nork-wholesale-properties
 git add .
-git commit -m "feat: wire up edit/delete wholesaler modal"
+git commit -m "refactor: cleaner wholesaler UI - add phone, remove unused columns"
 git push
 ```
 
-Then verify on live site:
-1. Go to Admin → Wholesalers
-2. Click pencil icon on any wholesaler row
-3. Test editing fields and saving
-4. Test delete with confirmation
+## Verify On Live Site:
+1. ✅ Phone numbers visible under email in Contact column
+2. ✅ No "Last Deal" column
+3. ✅ No sort dropdown
+4. ✅ Only pencil icon in Actions (no View Deals, no arrows)
+5. ✅ Edit modal still works
+6. ✅ Mobile view shows phone number
 
 ---
 
 ## Pending Feedback
 - [ ] User to test on live site
-- [ ] Report any issues
