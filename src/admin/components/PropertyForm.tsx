@@ -190,10 +190,10 @@ export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) =>
           </div>
         )}
 
-        {/* TOP ROW: Image (left) + Wholesaler & Visibility (right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* LEFT: Property Image - takes 3 columns */}
-          <div className="lg:col-span-3 bg-white rounded-lg shadow-md p-6 space-y-4">
+        {/* ROW 1: Image (left 60%) + Wholesaler & Visibility (right 40%) */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+          {/* LEFT: Property Image - takes 3 columns (60%) */}
+          <div className="md:col-span-3 bg-white rounded-lg shadow-md p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-gray-200 pb-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 Property Image
@@ -219,8 +219,8 @@ export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) =>
             )}
           </div>
 
-          {/* RIGHT: Wholesaler + Visibility - takes 2 columns */}
-          <div className="lg:col-span-2 space-y-6">
+          {/* RIGHT: Wholesaler + Visibility - takes 2 columns (40%) */}
+          <div className="md:col-span-2 space-y-6">
             {/* Wholesaler Card */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-4 mb-4">
@@ -275,279 +275,289 @@ export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) =>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
-          <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-4">
-            Property Address
-          </h3>
+        {/* ROW 2: Property Address (left 50%) + Property Details (right 50%) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* LEFT: Property Address */}
+          <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-4">
+              Property Address
+            </h3>
 
-          {/* Instruction Banner */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-blue-600 font-bold text-sm">1</span>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-blue-900">
-                  Start with the ZIP Code
-                </p>
-                <p className="text-sm text-blue-700 mt-0.5">
-                  Enter the ZIP code first and the city, state, and county will auto-populate.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* ZIP Code FIRST - triggers auto-fill */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              ZIP Code <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="zip_code"
-              value={formData.zip_code}
-              onChange={handleChange}
-              required
-              maxLength={10}
-              placeholder="Enter 5-digit ZIP code"
-              className="w-full px-4 py-2 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-medium"
-            />
-          </div>
-
-          {/* Street Address - after ZIP */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Street Address <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="street_address"
-              value={formData.street_address}
-              onChange={handleChange}
-              required
-              placeholder="123 Main Street"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
-            />
-          </div>
-
-          {/* City and State row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                City <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                State <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="state"
-                value={formData.state}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
-              >
-                <option value="">Select State</option>
-                {US_STATES.map((state) => (
-                  <option key={state} value={state}>
-                    {state}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* County with Lock */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-700">
-                County <span className="text-red-500">*</span>
-              </label>
-              {isCountyLocked && (
-                <button
-                  type="button"
-                  onClick={handleCountyEditClick}
-                  className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium"
-                >
-                  <Pencil size={12} />
-                  Edit
-                </button>
-              )}
-            </div>
-            <div className="relative">
-              <input
-                type="text"
-                name="county"
-                value={formData.county}
-                onChange={handleChange}
-                required
-                disabled={isCountyLocked}
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent ${
-                  isCountyLocked 
-                    ? 'bg-gray-50 border-gray-200 text-gray-700 pr-10' 
-                    : 'border-gray-300'
-                }`}
-              />
-              {isCountyLocked && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <Lock size={16} className="text-gray-400" />
+            {/* Instruction Banner */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                  <span className="text-blue-600 font-bold text-xs">1</span>
                 </div>
+                <div>
+                  <p className="text-xs font-semibold text-blue-900">
+                    Start with the ZIP Code
+                  </p>
+                  <p className="text-xs text-blue-700">
+                    City, state, and county will auto-populate.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* ZIP Code */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                ZIP Code <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="zip_code"
+                value={formData.zip_code}
+                onChange={handleChange}
+                required
+                maxLength={10}
+                placeholder="Enter 5-digit ZIP code"
+                className="w-full px-3 py-2 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base font-medium"
+              />
+            </div>
+
+            {/* Street Address */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Street Address <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="street_address"
+                value={formData.street_address}
+                onChange={handleChange}
+                required
+                placeholder="123 Main Street"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
+              />
+            </div>
+
+            {/* City and State row */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  City <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  State <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="state"
+                  value={formData.state}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
+                >
+                  <option value="">Select</option>
+                  {US_STATES.map((state) => (
+                    <option key={state} value={state}>
+                      {state}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* County with Lock */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-gray-700">
+                  County <span className="text-red-500">*</span>
+                </label>
+                {isCountyLocked && (
+                  <button
+                    type="button"
+                    onClick={handleCountyEditClick}
+                    className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium"
+                  >
+                    <Pencil size={10} />
+                    Edit
+                  </button>
+                )}
+              </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="county"
+                  value={formData.county}
+                  onChange={handleChange}
+                  required
+                  disabled={isCountyLocked}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent ${
+                    isCountyLocked 
+                      ? 'bg-gray-50 border-gray-200 text-gray-700 pr-8' 
+                      : 'border-gray-300'
+                  }`}
+                />
+                {isCountyLocked && (
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                    <Lock size={14} className="text-gray-400" />
+                  </div>
+                )}
+              </div>
+              {isCountyLocked && (
+                <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                  <span className="inline-block w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                  Auto-matched from ZIP code
+                </p>
               )}
             </div>
-            {isCountyLocked && (
-              <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
-                Auto-matched from ZIP code
-              </p>
-            )}
+          </div>
+
+          {/* RIGHT: Property Details */}
+          <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-4">
+              Property Details
+            </h3>
+
+            {/* Asking Price and ARV */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Asking Price <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  name="asking_price"
+                  value={formData.asking_price}
+                  onChange={handleChange}
+                  required
+                  min="0"
+                  step="0.01"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  ARV (After Repair Value)
+                </label>
+                <input
+                  type="number"
+                  name="arv"
+                  value={formData.arv || ''}
+                  onChange={handleChange}
+                  min="0"
+                  step="0.01"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Property Type and Status */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Property Type <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="property_type"
+                  value={formData.property_type}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
+                >
+                  {PROPERTY_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
+                >
+                  {PROPERTY_STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Bedrooms, Bathrooms, Square Footage */}
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Bedrooms
+                </label>
+                <input
+                  type="number"
+                  name="bedrooms"
+                  value={formData.bedrooms}
+                  onChange={handleChange}
+                  min="0"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Bathrooms
+                </label>
+                <input
+                  type="number"
+                  name="bathrooms"
+                  value={formData.bathrooms}
+                  onChange={handleChange}
+                  min="0"
+                  step="0.5"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Sq. Footage
+                </label>
+                <input
+                  type="number"
+                  name="square_footage"
+                  value={formData.square_footage}
+                  onChange={handleChange}
+                  min="0"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
-          <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-4">
-            Property Details
+        {/* ROW 3: Comments / Notes (full width) */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-4 mb-4">
+            Comments / Comps / Notes
           </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Asking Price <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                name="asking_price"
-                value={formData.asking_price}
-                onChange={handleChange}
-                required
-                min="0"
-                step="0.01"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                ARV (After Repair Value)
-              </label>
-              <input
-                type="number"
-                name="arv"
-                value={formData.arv || ''}
-                onChange={handleChange}
-                min="0"
-                step="0.01"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Property Type <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="property_type"
-                value={formData.property_type}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
-              >
-                {PROPERTY_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Status <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
-              >
-                {PROPERTY_STATUSES.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Bedrooms
-              </label>
-              <input
-                type="number"
-                name="bedrooms"
-                value={formData.bedrooms}
-                onChange={handleChange}
-                min="0"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Bathrooms
-              </label>
-              <input
-                type="number"
-                name="bathrooms"
-                value={formData.bathrooms}
-                onChange={handleChange}
-                min="0"
-                step="0.5"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Square Footage
-              </label>
-              <input
-                type="number"
-                name="square_footage"
-                value={formData.square_footage}
-                onChange={handleChange}
-                min="0"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Comments / Comps / Notes
-            </label>
-            <RichTextEditor
-              content={formData.comments || ''}
-              onChange={(html) => setFormData((prev) => ({ ...prev, comments: html || null }))}
-              placeholder="Add notes about the property, comparable sales, etc."
-            />
-          </div>
+          <RichTextEditor
+            content={formData.comments || ''}
+            onChange={(html) => setFormData((prev) => ({ ...prev, comments: html || null }))}
+            placeholder="Add notes about the property, comparable sales, etc."
+          />
         </div>
 
+        {/* Action Buttons */}
         <div className="flex items-center justify-end gap-4">
           <button
             type="button"
