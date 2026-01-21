@@ -106,3 +106,40 @@ git push
 - [ ] Enter ZIP 32801 → Should show Orlando, FL, Orange
 - [ ] Enter ZIP 33139 → Should show Miami Beach, FL, Miami-Dade
 - [ ] Try editing locked county → Should show confirmation dialog
+
+---
+
+### ✅ Update: Property Address Form Layout
+**Date:** 2025-01-21
+**Status:** Complete
+
+**Change:** Reorganized Property Address section for better UX
+
+**Before:**
+```
+Street Address
+City          County
+State         Zip Code
+```
+
+**After:**
+```
+┌─────────────────────────────────────────────────┐
+│ ① Start with the ZIP Code                      │
+│    Enter the ZIP code first and the city,      │
+│    state, and county will auto-populate.       │
+└─────────────────────────────────────────────────┘
+
+ZIP Code *  [highlighted blue border]
+Street Address *
+City *            State *
+County * [🔒 locked if auto-matched]
+```
+
+**Key Changes:**
+- ✅ Blue instruction banner at top with step number
+- ✅ ZIP Code moved to FIRST position
+- ✅ ZIP input has blue highlight border (stands out)
+- ✅ Street Address follows ZIP
+- ✅ City/State/County remain in logical order
+- ✅ No changes to public-facing property display

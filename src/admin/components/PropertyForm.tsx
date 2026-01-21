@@ -221,6 +221,41 @@ export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) =>
             Property Address
           </h3>
 
+          {/* Instruction Banner */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <span className="text-blue-600 font-bold text-sm">1</span>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-blue-900">
+                  Start with the ZIP Code
+                </p>
+                <p className="text-sm text-blue-700 mt-0.5">
+                  Enter the ZIP code first and the city, state, and county will auto-populate.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* ZIP Code FIRST - triggers auto-fill */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              ZIP Code <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="zip_code"
+              value={formData.zip_code}
+              onChange={handleChange}
+              required
+              maxLength={10}
+              placeholder="Enter 5-digit ZIP code"
+              className="w-full px-4 py-2 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-medium"
+            />
+          </div>
+
+          {/* Street Address - after ZIP */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Street Address <span className="text-red-500">*</span>
@@ -231,30 +266,12 @@ export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) =>
               value={formData.street_address}
               onChange={handleChange}
               required
+              placeholder="123 Main Street"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
             />
           </div>
 
-          {/* ZIP Code FIRST - triggers auto-fill */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Zip Code <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="zip_code"
-              value={formData.zip_code}
-              onChange={handleChange}
-              required
-              maxLength={10}
-              placeholder="Enter ZIP to auto-fill city, state, county"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Enter a 5-digit ZIP code to automatically fill city, state, and county
-            </p>
-          </div>
-
+          {/* City and State row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
