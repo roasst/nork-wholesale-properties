@@ -1,5 +1,6 @@
 /**
  * Broadcast Page - WhatsApp Property Broadcast Center
+ * With collage and PDF generation
  */
 
 import { useState, useMemo, useCallback } from 'react';
@@ -15,10 +16,12 @@ import {
 import { useAdminProperties } from '../hooks/useAdminProperties';
 import { useToast } from '../context/ToastContext';
 import { formatBroadcastMessage } from '../utils/whatsappFormatter';
-import { Property, PropertyType } from '../../types';
+import { generateCollage, downloadCollage } from '../utils/collageGenerator';
+import { generatePDF } from '../utils/pdfGenerator';
+import { PropertyType } from '../../types';
 
 export const Broadcast = () => {
-  const { success } = useToast();
+  const { success, error } = useToast();
   
   // Load all active properties
   const { properties: allProperties, loading, refetch } = useAdminProperties({
@@ -56,34 +59,24 @@ export const Broadcast = () => {
   // Apply filters to properties
   const filteredProperties = useMemo(() => {
     return allProperties.filter((property) => {
-      // Price filter
       if (filters.minPrice !== null && property.asking_price < filters.minPrice) {
         return false;
       }
       if (filters.maxPrice !== null && property.asking_price > filters.maxPrice) {
         return false;
       }
-
-      // City filter
       if (filters.city && property.city !== filters.city) {
         return false;
       }
-
-      // County filter
       if (filters.county && property.county !== filters.county) {
         return false;
       }
-
-      // Property type filter
       if (filters.propertyTypes.length > 0 && !filters.propertyTypes.includes(property.property_type as PropertyType)) {
         return false;
       }
-
-      // Status filter
       if (filters.status && property.status !== filters.status) {
         return false;
       }
-
       return true;
     });
   }, [allProperties, filters]);
@@ -129,6 +122,45 @@ export const Broadcast = () => {
     setShowPreview(true);
   }, [selectedProperties]);
 
+  // Download collage (2-4 properties)
+  const handleDownloadCollage = useCallback(async () => {
+    if (selectedProperties.length < 2 || selectedProperties.length > 4) {
+      error('Collage requires 2-4 properties');
+      return;
+    }
+    
+    try {
+      const dataUrl = await generateCollage(selectedProperties, {
+        showPrices: true,
+        showAddress: true,
+      });
+      downloadCollage(dataUrl);
+      success('Collage downloaded! Attach it to your WhatsApp message.');
+    } catch (err) {
+      console.error('Collage generation failed:', err);
+      error('Failed to generate collage. Some images may not be accessible.');
+    }
+  }, [selectedProperties, success, error]);
+
+  // Download PDF (any number)
+  const handleDownloadPDF = useCallback(async () => {
+    if (selectedProperties.length === 0) {
+      error('Select at least one property');
+      return;
+    }
+    
+    try {
+      await generatePDF(selectedProperties, {
+        title: `${selectedProperties.length} Investment ${selectedProperties.length === 1 ? 'Opportunity' : 'Opportunities'}`,
+        includeImages: true,
+      });
+      success('PDF downloaded! Share it with your contacts.');
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+      error('Failed to generate PDF. Please try again.');
+    }
+  }, [selectedProperties, success, error]);
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -140,7 +172,7 @@ export const Broadcast = () => {
               WhatsApp Broadcast
             </h1>
             <p className="text-gray-500 mt-1">
-              Select properties and share them to WhatsApp contacts, groups, or channels
+              Select properties and share them via WhatsApp, collage, or PDF
             </p>
           </div>
           <button
@@ -168,6 +200,8 @@ export const Broadcast = () => {
           selectedCount={selectedIds.size}
           onPreview={handlePreview}
           onCopyMessage={handleCopyMessage}
+          onDownloadCollage={handleDownloadCollage}
+          onDownloadPDF={handleDownloadPDF}
           disabled={loading}
         />
 
