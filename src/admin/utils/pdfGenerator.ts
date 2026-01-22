@@ -1,5 +1,5 @@
 /**
- * PDF Generator - Creates branded PDF flyers for 5+ properties
+ * PDF Generator - Creates branded PDF flyers for properties
  * Uses jsPDF for client-side generation
  */
 
@@ -23,6 +23,12 @@ async function loadLogo(): Promise<string> {
       canvas.width = img.width;
       canvas.height = img.height;
       const ctx = canvas.getContext('2d')!;
+      
+      // Fill with white background FIRST (fixes PNG transparency issue)
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Then draw the logo on top
       ctx.drawImage(img, 0, 0);
       logoDataUrl = canvas.toDataURL('image/png');
       resolve(logoDataUrl);

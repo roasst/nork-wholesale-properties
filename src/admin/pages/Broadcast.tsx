@@ -1,6 +1,6 @@
 /**
  * Broadcast Page - WhatsApp Property Broadcast Center
- * With collage and PDF generation
+ * With collage and PDF generation + auto-download + WhatsApp flow
  */
 
 import { useState, useMemo, useCallback } from 'react';
@@ -15,13 +15,13 @@ import {
 } from '../components/PropertyBroadcast';
 import { useAdminProperties } from '../hooks/useAdminProperties';
 import { useToast } from '../context/ToastContext';
-import { formatBroadcastMessage } from '../utils/whatsappFormatter';
+import { formatBroadcastMessage, generateWhatsAppUrl } from '../utils/whatsappFormatter';
 import { generateCollage, downloadCollage } from '../utils/collageGenerator';
 import { generatePDF } from '../utils/pdfGenerator';
 import { PropertyType } from '../../types';
 
 export const Broadcast = () => {
-  const { success, error } = useToast();
+  const { success, error, info } = useToast();
   
   // Load all active properties
   const { properties: allProperties, loading, refetch } = useAdminProperties({
@@ -161,6 +161,56 @@ export const Broadcast = () => {
     }
   }, [selectedProperties, success, error]);
 
+  // NEW: Auto-download media + open WhatsApp
+  const handleShareWhatsApp = useCallback(async () => {
+    if (selectedProperties.length === 0) {
+      error('Select at least one property');
+      return;
+    }
+
+    const count = selectedProperties.length;
+    const useCollage = count >= 2 && count <= 4;
+
+    try {
+      // Step 1: Generate and download the media
+      if (useCollage) {
+        info('Creating collage...');
+        const dataUrl = await generateCollage(selectedProperties, {
+          showPrices: true,
+          showAddress: true,
+        });
+        downloadCollage(dataUrl);
+      } else {
+        info('Creating PDF flyer...');
+        await generatePDF(selectedProperties, {
+          title: `${count} Investment ${count === 1 ? 'Opportunity' : 'Opportunities'}`,
+          includeImages: true,
+        });
+      }
+
+      // Step 2: Small delay to ensure download starts
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Step 3: Generate message and open WhatsApp
+      const message = formatBroadcastMessage(selectedProperties);
+      const whatsappUrl = generateWhatsAppUrl(message);
+      
+      // Show instruction toast
+      success(
+        useCollage 
+          ? 'Collage downloaded! Attach it in WhatsApp.' 
+          : 'PDF downloaded! Attach it in WhatsApp.'
+      );
+
+      // Open WhatsApp
+      window.open(whatsappUrl, '_blank');
+
+    } catch (err) {
+      console.error('Share to WhatsApp failed:', err);
+      error('Failed to prepare media. Please try the Download button instead.');
+    }
+  }, [selectedProperties, success, error, info]);
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -172,7 +222,7 @@ export const Broadcast = () => {
               WhatsApp Broadcast
             </h1>
             <p className="text-gray-500 mt-1">
-              Select properties and share them via WhatsApp, collage, or PDF
+              Select properties and share them via WhatsApp with collage or PDF
             </p>
           </div>
           <button
@@ -202,6 +252,7 @@ export const Broadcast = () => {
           onCopyMessage={handleCopyMessage}
           onDownloadCollage={handleDownloadCollage}
           onDownloadPDF={handleDownloadPDF}
+          onShareWhatsApp={handleShareWhatsApp}
           disabled={loading}
         />
 

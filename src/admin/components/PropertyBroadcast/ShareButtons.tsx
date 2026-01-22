@@ -1,11 +1,11 @@
 /**
- * ShareButtons - Action buttons for broadcast with collage/PDF downloads
+ * ShareButtons - Action buttons for broadcast with auto-download + WhatsApp flow
  */
 
 import { useState } from 'react';
 import { 
   MessageCircle, Copy, FileText, Image, Grid3X3, 
-  Download, Loader2, ChevronDown 
+  Download, Loader2, ChevronDown, Send
 } from 'lucide-react';
 import { getMediaStrategy } from '../../utils/whatsappFormatter';
 
@@ -15,6 +15,7 @@ interface ShareButtonsProps {
   onCopyMessage: () => void;
   onDownloadCollage?: () => Promise<void>;
   onDownloadPDF?: () => Promise<void>;
+  onShareWhatsApp?: () => Promise<void>;
   disabled?: boolean;
 }
 
@@ -24,10 +25,12 @@ export const ShareButtons = ({
   onCopyMessage,
   onDownloadCollage,
   onDownloadPDF,
+  onShareWhatsApp,
   disabled = false,
 }: ShareButtonsProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const [generatingType, setGeneratingType] = useState<'collage' | 'pdf' | 'share' | null>(null);
   
   const mediaStrategy = getMediaStrategy(selectedCount);
   const canCollage = selectedCount >= 2 && selectedCount <= 4;
@@ -40,22 +43,38 @@ export const ShareButtons = ({
   const handleDownloadCollage = async () => {
     if (!onDownloadCollage || isGenerating) return;
     setIsGenerating(true);
+    setGeneratingType('collage');
     setShowDownloadMenu(false);
     try {
       await onDownloadCollage();
     } finally {
       setIsGenerating(false);
+      setGeneratingType(null);
     }
   };
 
   const handleDownloadPDF = async () => {
     if (!onDownloadPDF || isGenerating) return;
     setIsGenerating(true);
+    setGeneratingType('pdf');
     setShowDownloadMenu(false);
     try {
       await onDownloadPDF();
     } finally {
       setIsGenerating(false);
+      setGeneratingType(null);
+    }
+  };
+
+  const handleShareWhatsApp = async () => {
+    if (!onShareWhatsApp || isGenerating) return;
+    setIsGenerating(true);
+    setGeneratingType('share');
+    try {
+      await onShareWhatsApp();
+    } finally {
+      setIsGenerating(false);
+      setGeneratingType(null);
     }
   };
 
@@ -107,13 +126,15 @@ export const ShareButtons = ({
                   : 'border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
               }`}
             >
-              {isGenerating ? (
+              {isGenerating && (generatingType === 'collage' || generatingType === 'pdf') ? (
                 <Loader2 size={18} className="animate-spin" />
               ) : (
                 <Download size={18} />
               )}
               <span className="hidden sm:inline">
-                {isGenerating ? 'Creating...' : 'Download'}
+                {isGenerating && (generatingType === 'collage' || generatingType === 'pdf') 
+                  ? 'Creating...' 
+                  : 'Download'}
               </span>
               <ChevronDown size={14} />
             </button>
@@ -166,18 +187,42 @@ export const ShareButtons = ({
             )}
           </div>
 
-          {/* WhatsApp Share Button */}
+          {/* Preview Button */}
           <button
             onClick={onPreview}
             disabled={disabled || selectedCount === 0}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-colors ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-colors ${
               disabled || selectedCount === 0
+                ? 'border-gray-200 text-gray-400 cursor-not-allowed'
+                : 'border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+            }`}
+            title="Preview message"
+          >
+            <MessageCircle size={18} />
+            <span className="hidden sm:inline">Preview</span>
+          </button>
+
+          {/* WhatsApp Share Button - Auto downloads media then opens WhatsApp */}
+          <button
+            onClick={handleShareWhatsApp}
+            disabled={disabled || selectedCount === 0 || isGenerating}
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-colors ${
+              disabled || selectedCount === 0 || isGenerating
                 ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : 'bg-[#25D366] hover:bg-[#128C7E] text-white'
             }`}
           >
-            <MessageCircle size={18} />
-            <span>Share to WhatsApp</span>
+            {isGenerating && generatingType === 'share' ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                <span>Preparing...</span>
+              </>
+            ) : (
+              <>
+                <Send size={18} />
+                <span>Send via WhatsApp</span>
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -190,12 +235,16 @@ export const ShareButtons = ({
       ) : (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-xs text-gray-500">
           <span className="flex items-center gap-1">
+            <Send size={12} className="text-[#25D366]" />
+            Auto-downloads {canCollage ? 'collage' : 'PDF'}, then opens WhatsApp
+          </span>
+          <span className="flex items-center gap-1">
             <Grid3X3 size={12} />
-            2-4 properties = Image collage
+            2-4 = Collage
           </span>
           <span className="flex items-center gap-1">
             <FileText size={12} />
-            Any selection = PDF flyer
+            1 or 5+ = PDF
           </span>
         </div>
       )}
