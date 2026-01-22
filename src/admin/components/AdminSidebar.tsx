@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Home, MessageSquare, Users, X, Building2, TrendingUp } from 'lucide-react';
+import { LayoutDashboard, Home, MessageSquare, Users, X, Building2, TrendingUp, MessageCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { usePendingCount } from '../hooks/usePendingCount';
 
@@ -16,6 +16,7 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
   const navItems = [
     { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/admin/properties', icon: Home, label: 'Properties', badge: pendingCount },
+    { path: '/admin/broadcast', icon: MessageCircle, label: 'Broadcast', isNew: true },
     { path: '/admin/inquiries', icon: MessageSquare, label: 'Inquiries' },
     { path: '/admin/wholesalers', icon: Building2, label: 'Wholesalers' },
     ...(canManageUsers ? [{ path: '/admin/users', icon: Users, label: 'Users' }] : []),
@@ -62,8 +63,15 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  <Icon size={20} />
+                  <Icon size={20} className={(item as any).isNew && !active ? 'text-[#25D366]' : ''} />
                   <span className="flex-1">{item.label}</span>
+                  {(item as any).isNew && (
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      active ? 'bg-white text-[#7CB342]' : 'bg-[#25D366] text-white'
+                    }`}>
+                      New
+                    </span>
+                  )}
                   {(item as any).ownerOnly && (
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
                       active ? 'bg-white text-[#7CB342]' : 'bg-purple-100 text-purple-700'

@@ -16,6 +16,7 @@ import { Dashboard } from './admin/pages/Dashboard';
 import { Properties as AdminProperties } from './admin/pages/Properties';
 import { PropertyNew } from './admin/pages/PropertyNew';
 import { PropertyEdit } from './admin/pages/PropertyEdit';
+import { Broadcast } from './admin/pages/Broadcast';
 import { Inquiries } from './admin/pages/Inquiries';
 import { Users } from './admin/pages/Users';
 import { Profile } from './admin/pages/Profile';
@@ -63,6 +64,14 @@ function App() {
             element={
               <ProtectedRoute requiredRoles={['owner', 'admin', 'editor']}>
                 <PropertyEdit />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/broadcast"
+            element={
+              <ProtectedRoute requiredRoles={['owner', 'admin', 'editor']}>
+                <Broadcast />
               </ProtectedRoute>
             }
           />
