@@ -270,6 +270,129 @@ git push origin main
 
 ---
 
+---
+
+## Session: January 22, 2026 (Continued)
+
+### ✅ Feature: Dynamic OG Meta Tags for WhatsApp Link Previews
+**Date:** 2026-01-22
+**Status:** COMPLETE - Ready for Deploy
+
+#### Problem
+When sharing property links on WhatsApp, the link preview showed the homepage screenshot instead of the property image because:
+1. React SPAs render meta tags client-side
+2. WhatsApp's crawler doesn't execute JavaScript
+3. The crawler sees the default `index.html` meta tags
+
+#### Solution
+Netlify Edge Function that intercepts bot requests and returns HTML with dynamic OG tags.
+
+#### How It Works
+```
+User shares: https://norkwholesale.com/property/abc123
+                           ↓
+        Netlify Edge Function intercepts
+                           ↓
+         Is it a bot? (WhatsApp, Facebook, etc.)
+                    ↓              ↓
+                  YES              NO
+                   ↓               ↓
+           Fetch property    Pass through to
+           from Supabase      React SPA
+                   ↓
+           Return HTML with
+           dynamic OG tags:
+           - og:title = "123 Main St, Miami, FL | $150,000"
+           - og:image = property.image_url
+           - og:description = "3BD | 2BA | 1,500 sqft..."
+```
+
+#### Files Created
+1. `netlify/edge-functions/og-property.ts` - Edge function for dynamic OG tags
+2. `netlify.toml` - Netlify configuration (build, redirects, headers, edge functions)
+
+#### Supported Bots
+- WhatsApp
+- Facebook (facebookexternalhit, Facebot)
+- Twitter (Twitterbot)
+- LinkedIn (LinkedInBot)
+- Slack (Slackbot)
+- Telegram (TelegramBot)
+- Discord (Discordbot)
+- Pinterest
+- Google (Googlebot)
+- Bing (bingbot)
+- Apple (Applebot)
+
+#### OG Tags Generated
+```html
+<meta property="og:title" content="123 Main St, Miami, FL 33101 | $150,000">
+<meta property="og:description" content="💰 Asking: $150,000 | ARV: $220,000 | 🛏 3 BD | 2 BA | 1,500 sqft | 📍 Miami-Dade County | SFR">
+<meta property="og:image" content="https://[property-image-url]">
+<meta property="og:url" content="https://norkwholesale.com/property/abc123">
+```
+
+#### Environment Variables Required
+Netlify needs these (should already be set from Vite):
+- `VITE_SUPABASE_URL` or `SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY` or `SUPABASE_ANON_KEY`
+
+---
+
+## Deploy Instructions - OG Meta Tags
+
+```bash
+cd C:\Projects\nork-wholesale-properties
+git add .
+git commit -m "feat: Dynamic OG meta tags for WhatsApp link previews
+
+- Add Netlify Edge Function for /property/* routes
+- Detect social media crawlers (WhatsApp, Facebook, Twitter, etc.)
+- Fetch property data from Supabase for bots
+- Return HTML with dynamic og:title, og:image, og:description
+- Regular users pass through to React SPA
+- Add netlify.toml with build config, redirects, headers"
+git push origin main
+```
+
+---
+
+## Testing - OG Meta Tags
+
+### Quick Test
+1. Deploy the changes
+2. Share a property link in WhatsApp
+3. Wait for preview to load (may take 5-10 seconds)
+4. Verify property image appears in preview
+
+### Debug Tools
+- **Facebook Sharing Debugger:** https://developers.facebook.com/tools/debug/
+- **Twitter Card Validator:** https://cards-dev.twitter.com/validator
+- **LinkedIn Post Inspector:** https://www.linkedin.com/post-inspector/
+
+### Expected Result
+WhatsApp preview should show:
+- Property image (not homepage)
+- Address as title
+- Price and details in description
+
+---
+
+## Pending Items
+
+### Waiting for User Input:
+1. **WhatsApp Business API credentials** - For direct image/PDF sending
+2. **Logo file (PNG/SVG)** - For PDF branding
+3. **CTA text** - For PDF footer
+4. **Brand confirmation** - Company name, colors
+
+### Next Features (after user provides info):
+- [ ] Image collage generation (2-4 properties) via Supabase Edge Function
+- [ ] PDF generation (5+ properties) via Supabase Edge Function
+- [ ] WhatsApp Business API integration
+
+---
+
 ## Quick Reference
 
 ### Project Path
