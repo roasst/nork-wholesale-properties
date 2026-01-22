@@ -11,6 +11,16 @@ const SITE_URL = typeof window !== 'undefined'
   : 'https://norkwholesale.com';
 
 /**
+ * Generate a cache-busting property URL
+ * WhatsApp aggressively caches link previews, so we add a timestamp
+ * to force it to fetch fresh OG tags for each share
+ */
+function getPropertyUrl(propertyId: string): string {
+  const timestamp = Date.now();
+  return `${SITE_URL}/property/${propertyId}?v=${timestamp}`;
+}
+
+/**
  * Format a single property for WhatsApp
  */
 export function formatPropertyBlock(property: Property): string {
@@ -47,7 +57,8 @@ export function formatPropertyBlock(property: Property): string {
     ? new Intl.NumberFormat('en-US').format(square_footage)
     : null;
 
-  const propertyUrl = `${SITE_URL}/property/${id}`;
+  // Use cache-busting URL
+  const propertyUrl = getPropertyUrl(id);
 
   const lines = [
     `🔥 *${street_address}, ${city}, ${state} ${zip_code}*`,
@@ -208,6 +219,7 @@ export function formatCompactProperty(property: Property): string {
     maximumFractionDigits: 0,
   }).format(property.asking_price);
 
+  // Use cache-busting URL
   return `• *${property.street_address}*, ${property.city} - ${formattedPrice}`;
 }
 

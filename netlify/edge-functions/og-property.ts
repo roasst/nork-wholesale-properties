@@ -77,7 +77,7 @@ async function fetchProperty(id: string, supabaseUrl: string, supabaseKey: strin
 }
 
 // Generate HTML with OG tags
-function generateOGHtml(property: any, siteUrl: string): string {
+function generateOGHtml(property: any, siteUrl: string, cacheBuster: string): string {
   const {
     id,
     street_address,
@@ -107,8 +107,18 @@ function generateOGHtml(property: any, siteUrl: string): string {
   ].filter(Boolean).join(' | ');
 
   // Use property image or fallback to default OG image
-  const ogImage = image_url || `${siteUrl}/og-image.svg`;
-  const propertyUrl = `${siteUrl}/property/${id}`;
+  // Add cache buster to image URL to prevent WhatsApp from showing stale cached images
+  let ogImage = image_url || `${siteUrl}/og-image.svg`;
+  if (image_url && cacheBuster) {
+    // Add cache buster to image URL
+    const separator = image_url.includes('?') ? '&' : '?';
+    ogImage = `${image_url}${separator}cb=${cacheBuster}`;
+  }
+  
+  // Property URL includes the cache buster for uniqueness
+  const propertyUrl = cacheBuster 
+    ? `${siteUrl}/property/${id}?v=${cacheBuster}`
+    : `${siteUrl}/property/${id}`;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -129,7 +139,9 @@ function generateOGHtml(property: any, siteUrl: string): string {
   <meta property="og:image" content="${ogImage}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:site_name" content="Nork Wholesale Properties">
+  <meta property="og:image:alt" content="${escapeHtml(street_address)} - Property Photo">
+  <meta property="og:site_name" content="Nork Group">
+  <meta property="og:updated_time" content="${new Date().toISOString()}">
   
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
@@ -139,13 +151,13 @@ function generateOGHtml(property: any, siteUrl: string): string {
   <meta property="twitter:image" content="${ogImage}">
   
   <!-- Redirect to actual page for any JS-enabled browser -->
-  <script>window.location.href = "${propertyUrl}";</script>
+  <script>window.location.href = "${siteUrl}/property/${id}";</script>
   <noscript>
-    <meta http-equiv="refresh" content="0;url=${propertyUrl}">
+    <meta http-equiv="refresh" content="0;url=${siteUrl}/property/${id}">
   </noscript>
 </head>
 <body>
-  <p>Redirecting to <a href="${propertyUrl}">${escapeHtml(title)}</a>...</p>
+  <p>Redirecting to <a href="${siteUrl}/property/${id}">${escapeHtml(title)}</a>...</p>
 </body>
 </html>`;
 }
@@ -176,8 +188,12 @@ export default async function handler(request: Request, context: Context) {
     return context.next();
   }
 
+  // Extract cache buster from query params (used to force fresh previews)
+  const cacheBuster = url.searchParams.get('v') || '';
+
   console.log(`[OG] Bot detected: ${userAgent?.substring(0, 50)}`);
   console.log(`[OG] Property ID: ${propertyId}`);
+  console.log(`[OG] Cache buster: ${cacheBuster}`);
 
   // Get Supabase credentials from environment
   const supabaseUrl = Deno.env.get('VITE_SUPABASE_URL') || Deno.env.get('SUPABASE_URL');
@@ -200,13 +216,18 @@ export default async function handler(request: Request, context: Context) {
   const siteUrl = url.origin;
 
   // Generate and return OG HTML
-  const html = generateOGHtml(property, siteUrl);
+  const html = generateOGHtml(property, siteUrl, cacheBuster);
   
   return new Response(html, {
     status: 200,
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'public, max-age=300', // Cache for 5 minutes
+      // Prevent caching to ensure fresh OG data on each request
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+      // Vary header to help with cache differentiation
+      'Vary': 'User-Agent',
     },
   });
 }

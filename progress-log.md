@@ -49,6 +49,28 @@
 #### Overview
 Added client-side generation for image collages (2-4 properties) and branded PDF flyers.
 
+---
+
+### ✅ Bugfix: WhatsApp Link Preview Caching Issue
+**Date:** 2026-01-22
+**Status:** READY FOR DEPLOY
+
+#### Problem
+WhatsApp aggressively caches link previews. When sharing different properties in sequence, WhatsApp was showing the cached image from the first property instead of the correct image for subsequent shares.
+
+#### Solution
+1. **Cache-busting URLs**: Added timestamp parameter (`?v=`) to property URLs in `whatsappFormatter.ts`
+2. **Edge function updates**: Updated `og-property.ts` to:
+   - Extract and pass through cache buster parameter
+   - Add cache buster to og:image URLs
+   - Return strict no-cache headers (`no-cache, no-store, must-revalidate`)
+   - Add `og:updated_time` meta tag with current timestamp
+   - Add `Vary: User-Agent` header
+
+#### Files Modified
+- `src/admin/utils/whatsappFormatter.ts` - Cache-busting URL generation
+- `netlify/edge-functions/og-property.ts` - No-cache headers + cache buster handling
+
 #### Branding Received
 - **Company Name:** Nork Group
 - **Logo:** `public/nork-logo.png` (green house on black)
