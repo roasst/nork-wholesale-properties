@@ -4,7 +4,7 @@
  */
 
 import { useState, useMemo, useCallback } from 'react';
-import { MessageCircle, RefreshCw } from 'lucide-react';
+import { MessageCircle, RefreshCw, MapPin, Users } from 'lucide-react';
 import { AdminLayout } from '../components/AdminLayout';
 import {
   BroadcastFilters,
@@ -280,7 +280,36 @@ export const Broadcast = () => {
           filteredCount={filteredProperties.length}
         />
 
-        {/* Share Buttons */}
+        {/* Search Card */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg shadow-sm p-4">
+          <h3 className="text-sm font-semibold text-blue-800 mb-3">Quick Search</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Address Search */}
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400" size={16} />
+              <input
+                type="text"
+                placeholder="Search address, city, or ZIP..."
+                value={filters.addressSearch}
+                onChange={(e) => setFilters({ ...filters, addressSearch: e.target.value })}
+                className="w-full pl-9 pr-3 py-2 text-sm border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-300 bg-white"
+              />
+            </div>
+            {/* Wholesaler Search */}
+            <div className="relative">
+              <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400" size={16} />
+              <input
+                type="text"
+                placeholder="Search wholesaler name or company..."
+                value={filters.wholesalerSearch}
+                onChange={(e) => setFilters({ ...filters, wholesalerSearch: e.target.value })}
+                className="w-full pl-9 pr-3 py-2 text-sm border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-300 bg-white"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Share Buttons */
         <ShareButtons
           selectedCount={selectedIds.size}
           onPreview={handlePreview}

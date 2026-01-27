@@ -145,12 +145,35 @@ export const BroadcastPropertyGrid = ({
                   <div className="flex items-center justify-between mt-2">
                     <div className="flex items-center gap-1 text-[#7CB342] font-bold text-sm">
                       <DollarSign size={14} />
-                      {formatPrice(property.asking_price).replace('$', '')}
+                      {formatPrice(property.asking_price).replace('
+
+                {/* Selected Overlay */}
+                {isSelected && (
+                  <div className="absolute inset-0 bg-[#7CB342]/5 pointer-events-none" />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+, '')}
                     </div>
                     <div className="text-xs text-gray-500">
                       {property.bedrooms}bd/{property.bathrooms}ba
                     </div>
                   </div>
+                  
+                  {/* Wholesaler Badge */}
+                  {(property as any).wholesalers?.name && (
+                    <div className="mt-2 pt-2 border-t border-gray-100">
+                      <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">
+                        {(property as any).wholesalers.name}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Selected Overlay */}
