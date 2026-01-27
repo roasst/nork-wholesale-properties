@@ -1,96 +1,158 @@
-# Handoff Document - Wholesaler Management
+# Handoff Document - Broadcast UI Enhancements
 
-**Date:** January 20, 2026  
-**Project:** nork-wholesale-properties
+**Date:** January 27, 2026  
+**Project:** nork-wholesale-properties  
+**Session:** Broadcast Search & Wholesaler Tags
 
 ---
 
 ## Summary
 
-Created Add and Edit modals for wholesaler management with phone auto-formatting and delete functionality.
+Enhanced Broadcast page with text search filters for address and wholesaler. Added wholesaler name badges to Properties table. Two pending tasks remain for next session.
 
 ---
 
-## Files Created
+## Completed This Session
 
-### 1. AddWholesalerModal.tsx
-**Path:** `src/admin/components/AddWholesalerModal.tsx`
+### 1. Broadcast Filters - Search Inputs
+**Files:** 
+- `src/admin/components/PropertyBroadcast/BroadcastFilters.tsx`
+- `src/admin/pages/Broadcast.tsx`
 
-Features:
-- Name* (required, user icon)
-- Email* (required, mail icon, validates format)
-- Phone* (required, phone icon, auto-formats)
-- Company Name (optional, building icon)
-- Cancel + Add Wholesaler buttons
+**Features:**
+- Address search input with MapPin icon
+- Wholesaler search input with Users icon
+- Clear button (X) for each field
+- Case-insensitive matching
+- Positioned at TOP of filter card
 
-### 2. EditWholesalerModal.tsx
-**Path:** `src/admin/components/EditWholesalerModal.tsx`
-
-Features:
-- All fields from Add modal
-- Notes textarea (FileText icon)
-- Pre-populates with existing data
-- Shows stats (Total Deals, Trusted) read-only
-- Delete button (red, left side)
-- Uses ConfirmModal for delete confirmation
-- Cancel + Save Changes buttons
-
----
-
-## Files Updated
-
-### Wholesalers.tsx
-**Path:** `src/admin/pages/Wholesalers.tsx`
-
-Changes:
-- Added `showAddModal` and `editingWholesaler` state
-- Import AddWholesalerModal and EditWholesalerModal
-- Green "+ Add Wholesaler" button in header
-- Pencil icon in Actions column for each row
-- "Edit Profile" link in expanded row details
-- Empty state includes "Add Your First Wholesaler" button
-
----
-
-## Phone Formatting
-
+**Filter Logic:**
 ```typescript
-// Format: (555) 123-4567
-const formatPhoneNumber = (value: string): string => {
-  const digits = value.replace(/\D/g, '').slice(0, 10);
-  if (digits.length === 0) return '';
-  if (digits.length <= 3) return `(${digits}`;
-  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
-  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-};
+// Address search matches: street_address, city, zip_code
+// Wholesaler search matches: wholesaler name, company_name, email
+```
+
+### 2. Wholesaler Tags on Properties Table
+**File:** `src/admin/pages/Properties.tsx`
+
+**Features:**
+- Blue badge/pill showing wholesaler name
+- Appears on each property row
+- Styling: `bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full`
+
+### 3. Wholesaler Navigation
+**File:** `src/admin/pages/Wholesalers.tsx`
+
+**Features:**
+- Click row → navigate to filtered Properties view
+- URL: `/admin/properties?wholesaler={id}`
+
+---
+
+## Pending Tasks (Next Session)
+
+### Task A: Extract Search to Separate Card
+**Goal:** Move search inputs from BroadcastFilters into their own card
+
+**Current Location:** Inside BroadcastFilters.tsx, lines ~113-169
+
+**New Location:** New section in Broadcast.tsx between:
+- "Filter Properties" card (BroadcastFilters)
+- Property grid (BroadcastPropertyGrid)
+
+**Visual Layout:**
+```
+┌─────────────────────────────┐
+│ Filter Properties Card      │  ← BroadcastFilters (dropdowns only)
+│ County | City | Zip | etc   │
+└─────────────────────────────┘
+┌─────────────────────────────┐
+│ 🔍 Search Card (NEW)        │  ← Address + Wholesaler inputs
+│ [Address...] [Wholesaler...] │
+└─────────────────────────────┘
+┌─────────────────────────────┐
+│ Property Grid               │
+│ 📷 📷 📷 📷                  │
+└─────────────────────────────┘
+```
+
+**Implementation:**
+1. Copy search JSX from BroadcastFilters.tsx (lines 113-169)
+2. Create new card section in Broadcast.tsx
+3. Remove search JSX from BroadcastFilters.tsx
+4. State/handlers already exist - just pass as props
+
+### Task B: Wholesaler Tags on Broadcast Cards
+**Goal:** Show wholesaler name on mini property cards
+
+**File:** `src/admin/components/PropertyBroadcast/BroadcastPropertyGrid.tsx`
+
+**Data Access:**
+```typescript
+const wholesalerName = (property as any).wholesalers?.name;
+```
+
+**Position:** After price/beds/baths section (after line 127)
+
+**Styling:**
+```tsx
+{wholesalerName && (
+  <div className="mt-2 pt-2 border-t border-gray-100">
+    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">
+      {wholesalerName}
+    </span>
+  </div>
+)}
 ```
 
 ---
 
-## Testing Instructions
+## Key Files Reference
 
-1. **Add Wholesaler:**
-   - Click "+ Add Wholesaler" button
-   - Fill in fields, verify phone formats
-   - Try submitting with missing required fields
-   - Submit and verify wholesaler appears
-
-2. **Edit Wholesaler:**
-   - Click pencil icon or "Edit Profile" in expanded row
-   - Verify data is pre-populated
-   - Make changes and save
-   - Verify changes persist
-
-3. **Delete Wholesaler:**
-   - Click Delete in edit modal
-   - Verify confirmation dialog appears
-   - Confirm delete
-   - Verify wholesaler removed from list
+| File | Purpose |
+|------|---------|
+| `src/admin/pages/Broadcast.tsx` | Main broadcast page, filter state |
+| `src/admin/components/PropertyBroadcast/BroadcastFilters.tsx` | Filter dropdowns + search inputs |
+| `src/admin/components/PropertyBroadcast/BroadcastPropertyGrid.tsx` | Property card grid |
+| `src/admin/pages/Properties.tsx` | Properties table with wholesaler tags |
+| `src/admin/pages/Wholesalers.tsx` | Wholesalers list with click navigation |
 
 ---
 
-## Known Considerations
+## Filter State Interface
 
-- Phone is required in Add modal but optional in Edit modal (existing wholesalers may not have phone)
-- Delete warning mentions deals will remain but be unlinked
-- Uses `supabase.from('wholesalers')` directly (matches existing pattern)
+```typescript
+interface BroadcastFilterValues {
+  counties: string[];
+  cities: string[];
+  zipCodes: string[];
+  minPrice: string;
+  maxPrice: string;
+  propertyTypes: string[];
+  minBeds: string;
+  minBaths: string;
+  addressSearch: string;      // ← Search inputs
+  wholesalerSearch: string;   // ← Search inputs
+}
+```
+
+---
+
+## Testing Checklist
+
+- [ ] Address search filters property grid correctly
+- [ ] Wholesaler search filters property grid correctly
+- [ ] Clear buttons (X) reset search fields
+- [ ] Wholesaler badges appear on Properties table
+- [ ] Click wholesaler row → navigates to filtered Properties
+
+---
+
+## Git Commands
+
+```powershell
+cd C:\Projects\nork-wholesale-properties
+git add -A
+git commit -m "feat: broadcast search filters, wholesaler tags"
+git push
+```
