@@ -153,10 +153,10 @@ export const BroadcastPropertyGrid = ({
                   </div>
                   
                   {/* Wholesaler Badge */}
-                  {property.wholesaler?.name && (
+                  {property.wholesalers?.name && (
                     <div className="mt-2 pt-2 border-t border-gray-100">
                       <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">
-                        {property.wholesaler.name}
+                        {property.wholesalers.name}
                       </span>
                     </div>
                   )}

@@ -102,7 +102,7 @@ export const Broadcast = () => {
       // Wholesaler search filter (case-insensitive, partial match)
       if (filters.wholesalerSearch) {
         const searchLower = filters.wholesalerSearch.toLowerCase();
-        const wholesaler = property.wholesaler;
+        const wholesaler = property.wholesalers;
         const wholesalerMatch = 
           wholesaler?.name?.toLowerCase().includes(searchLower) ||
           wholesaler?.company_name?.toLowerCase().includes(searchLower) ||
