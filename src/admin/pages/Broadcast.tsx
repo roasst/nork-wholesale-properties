@@ -309,7 +309,7 @@ export const Broadcast = () => {
           </div>
         </div>
 
-        {/* Share Buttons */
+        {/* Share Buttons */}
         <ShareButtons
           selectedCount={selectedIds.size}
           onPreview={handlePreview}
