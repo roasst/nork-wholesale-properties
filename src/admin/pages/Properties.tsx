@@ -37,12 +37,14 @@ export const Properties = () => {
     wholesaler_id: wholesalerId,
   });
 
+  // Filter properties by search term (includes wholesaler name)
   let filteredProperties = searchTerm
-    ? properties.filter((p) =>
-        `${p.street_address} ${p.city} ${p.state} ${p.zip_code} ${p.property_type}`
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())
-      )
+    ? properties.filter((p) => {
+        const wholesalerName = (p as any).wholesalers?.name || '';
+        const wholesalerCompany = (p as any).wholesalers?.company_name || '';
+        const searchableText = `${p.street_address} ${p.city} ${p.state} ${p.zip_code} ${p.property_type} ${wholesalerName} ${wholesalerCompany}`.toLowerCase();
+        return searchableText.includes(searchTerm.toLowerCase());
+      })
     : properties;
 
   if (imageFilter === 'has-image') {
@@ -310,7 +312,7 @@ export const Properties = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
-              placeholder="Search properties..."
+              placeholder="Search properties or wholesaler..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"

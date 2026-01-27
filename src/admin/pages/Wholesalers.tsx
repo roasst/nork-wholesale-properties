@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Search, Phone, Mail, Building2, TrendingUp, Plus, Pencil } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Phone, Mail, Building2, TrendingUp, Plus, Pencil, ExternalLink } from 'lucide-react';
 import { Wholesaler } from '../../types';
 import { AdminLayout } from '../components/AdminLayout';
 import { useWholesalers, toggleTrusted } from '../hooks/useWholesalers';
@@ -11,6 +12,7 @@ import { useToast } from '../context/ToastContext';
 import { canToggleTrusted } from '../utils/rolePermissions';
 
 export const Wholesalers = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { success, error: showError } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
@@ -123,7 +125,9 @@ export const Wholesalers = () => {
                   {sortedWholesalers.map((wholesaler) => (
                     <tr
                       key={wholesaler.id}
-                      className="hover:bg-gray-50 transition-colors"
+                      onClick={() => navigate(`/admin/properties?wholesaler=${wholesaler.id}`)}
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      title="Click to view properties from this wholesaler"
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
@@ -169,13 +173,28 @@ export const Wholesalers = () => {
                         />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => setEditingWholesaler(wholesaler)}
-                          className="text-gray-500 hover:text-[#7CB342] transition-colors p-2 rounded-lg hover:bg-gray-100"
-                          title="Edit wholesaler"
-                        >
-                          <Pencil size={18} />
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/admin/properties?wholesaler=${wholesaler.id}`);
+                            }}
+                            className="text-blue-600 hover:text-blue-700 transition-colors p-2 rounded-lg hover:bg-blue-50"
+                            title="View properties"
+                          >
+                            <ExternalLink size={18} />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingWholesaler(wholesaler);
+                            }}
+                            className="text-gray-500 hover:text-[#7CB342] transition-colors p-2 rounded-lg hover:bg-gray-100"
+                            title="Edit wholesaler"
+                          >
+                            <Pencil size={18} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

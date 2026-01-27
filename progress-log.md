@@ -1,41 +1,62 @@
 # Progress Log - Nork Wholesale Properties
 
-## 2025-01-22 - Session 3: WhatsApp UX Improvements ✅ DEPLOYED
+## Session: January 27, 2026
 
-### Deployed Changes
-- ✅ PDF logo white background fix
-- ✅ Auto-download + WhatsApp workflow (download media, then open WhatsApp)
-- ✅ Collage generator (2-4 properties)
-- ✅ PDF flyer generator (any count)
+### Completed Tasks
 
-### Files Modified
-1. `src/admin/utils/pdfGenerator.ts` - Logo white background
-2. `src/admin/components/PropertyBroadcast/ShareButtons.tsx` - New share flow
-3. `src/admin/pages/Broadcast.tsx` - handleShareWhatsApp handler
+#### Task 1: Properties Page - Wholesaler Search ✅
+- Modified search placeholder to "Search properties or wholesaler..."
+- Enhanced filter logic to search wholesaler name and company_name from joined data
+- File: `src/admin/pages/Properties.tsx`
 
----
+#### Task 2: Wholesalers Page - Click to View Properties ✅
+- Added useNavigate hook
+- Made table rows clickable with cursor pointer
+- Navigate to `/admin/properties?wholesaler={id}` on row click
+- Added ExternalLink icon button in Actions column
+- Added stopPropagation to Edit button
+- File: `src/admin/pages/Wholesalers.tsx`
 
-## Tomorrow's Agenda (2025-01-23)
+#### Task 4: Broadcast Filters - Address & Wholesaler Search ✅
+- Added `addressSearch` text input with MapPin icon
+- Added `wholesalerSearch` text input with Users icon
+- Updated `BroadcastFilterValues` interface
+- Added clear button for each search field
+- File: `src/admin/components/PropertyBroadcast/BroadcastFilters.tsx`
 
-### Priority: WhatsApp Business API Integration
-- [ ] Set up WhatsApp Business API account
-- [ ] Configure message templates for property broadcasts
-- [ ] Implement direct send (no manual attachment needed)
-- [ ] Add recipient list management
+- Updated filter logic in Broadcast.tsx to apply new filters:
+  - Address search: matches street_address, city, zip_code (case-insensitive)
+  - Wholesaler search: matches wholesaler name, company_name, email (case-insensitive)
+- File: `src/admin/pages/Broadcast.tsx`
 
-### Alternative Tasks (if agenda changes)
-- [ ] Test current broadcast workflow end-to-end
-- [ ] Mobile optimization review
-- [ ] Any bug fixes from testing
+### Pending Tasks
 
----
+#### Task 3: Duplicate Address Check (PropertyForm) ⏳
+- Add debounced real-time validation
+- Query properties for matching street_address + zip_code
+- Show warning with link to existing property
+- File: `src/admin/components/PropertyForm.tsx`
 
-## Previous Sessions
+#### Task 5: Database Schema Migration 🔲 (Future Session)
+- Create `property_wholesalers` junction table
+- Migration to move existing `wholesaler_id` relationships
 
-### Session 2 (2025-01-22): Cache-Busting Fix
-- Fixed WhatsApp caching wrong images
-- Added timestamp to property URLs
+#### Task 6: Multi-Wholesaler UI 🔲 (Depends on Task 5)
+- Replace single WholesalerSelector with multi-select
+- Add "Add Wholesaler" button
+- Display selected wholesalers as chips
+- Rename labels: "Wholesaler" → "Wholesaler Contacts"
 
-### Session 1 (2025-01-21): WhatsApp Broadcast System
-- Phase 1 complete - Broadcast page with filters, selection, preview
-- Dynamic OG meta tags edge function
+### Files Modified This Session
+1. `src/admin/pages/Properties.tsx` - Wholesaler search in filter
+2. `src/admin/pages/Wholesalers.tsx` - Click row navigation
+3. `src/admin/components/PropertyBroadcast/BroadcastFilters.tsx` - Address & wholesaler search
+4. `src/admin/pages/Broadcast.tsx` - Apply new filter logic
+
+### Git Commands for Deployment
+```powershell
+cd C:\Projects\nork-wholesale-properties
+git add -A
+git commit -m "feat: wholesaler search, click navigation, broadcast filters"
+git push
+```

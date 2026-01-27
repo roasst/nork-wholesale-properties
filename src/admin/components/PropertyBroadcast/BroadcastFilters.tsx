@@ -1,9 +1,10 @@
 /**
  * BroadcastFilters - Filter controls for property broadcast
+ * Enhanced with address and wholesaler text search
  */
 
 import { useState } from 'react';
-import { Filter, X, ChevronDown } from 'lucide-react';
+import { Filter, X, ChevronDown, Search, MapPin, Users } from 'lucide-react';
 import { PropertyType } from '../../../types';
 import { PROPERTY_TYPES } from '../../utils/rolePermissions';
 
@@ -14,6 +15,8 @@ export interface BroadcastFilterValues {
   county: string;
   propertyTypes: PropertyType[];
   status: string;
+  addressSearch: string;
+  wholesalerSearch: string;
 }
 
 interface BroadcastFiltersProps {
@@ -68,6 +71,14 @@ export const BroadcastFilters = ({
     onChange({ ...filters, status });
   };
 
+  const handleAddressSearchChange = (addressSearch: string) => {
+    onChange({ ...filters, addressSearch });
+  };
+
+  const handleWholesalerSearchChange = (wholesalerSearch: string) => {
+    onChange({ ...filters, wholesalerSearch });
+  };
+
   const clearFilters = () => {
     onChange({
       minPrice: null,
@@ -76,6 +87,8 @@ export const BroadcastFilters = ({
       county: '',
       propertyTypes: [],
       status: '',
+      addressSearch: '',
+      wholesalerSearch: '',
     });
   };
 
@@ -85,7 +98,9 @@ export const BroadcastFilters = ({
     filters.city !== '' ||
     filters.county !== '' ||
     filters.propertyTypes.length > 0 ||
-    filters.status !== '';
+    filters.status !== '' ||
+    filters.addressSearch !== '' ||
+    filters.wholesalerSearch !== '';
 
   const activeFilterCount = [
     filters.minPrice !== null || filters.maxPrice !== null,
@@ -93,6 +108,8 @@ export const BroadcastFilters = ({
     filters.county !== '',
     filters.propertyTypes.length > 0,
     filters.status !== '',
+    filters.addressSearch !== '',
+    filters.wholesalerSearch !== '',
   ].filter(Boolean).length;
 
   return (
@@ -127,6 +144,65 @@ export const BroadcastFilters = ({
       {/* Filters Body */}
       {isExpanded && (
         <div className="p-4 space-y-4">
+          {/* Search Row - Address and Wholesaler */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Address Search */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Search Address
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                <input
+                  type="text"
+                  value={filters.addressSearch}
+                  onChange={(e) => handleAddressSearchChange(e.target.value)}
+                  placeholder="Enter street address..."
+                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent text-sm"
+                />
+                {filters.addressSearch && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddressSearchChange('');
+                    }}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Wholesaler Search */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Search Wholesaler
+              </label>
+              <div className="relative">
+                <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                <input
+                  type="text"
+                  value={filters.wholesalerSearch}
+                  onChange={(e) => handleWholesalerSearchChange(e.target.value)}
+                  placeholder="Enter wholesaler name..."
+                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent text-sm"
+                />
+                {filters.wholesalerSearch && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleWholesalerSearchChange('');
+                    }}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* Price Range */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

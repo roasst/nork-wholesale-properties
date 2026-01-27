@@ -29,7 +29,7 @@ export const Broadcast = () => {
     is_active: true,
   });
 
-  // Filter state
+  // Filter state - includes addressSearch and wholesalerSearch
   const [filters, setFilters] = useState<BroadcastFilterValues>({
     minPrice: null,
     maxPrice: null,
@@ -37,6 +37,8 @@ export const Broadcast = () => {
     county: '',
     propertyTypes: [],
     status: '',
+    addressSearch: '',
+    wholesalerSearch: '',
   });
 
   // Selection state
@@ -59,24 +61,57 @@ export const Broadcast = () => {
   // Apply filters to properties
   const filteredProperties = useMemo(() => {
     return allProperties.filter((property) => {
+      // Price filters
       if (filters.minPrice !== null && property.asking_price < filters.minPrice) {
         return false;
       }
       if (filters.maxPrice !== null && property.asking_price > filters.maxPrice) {
         return false;
       }
+      
+      // Location filters
       if (filters.city && property.city !== filters.city) {
         return false;
       }
       if (filters.county && property.county !== filters.county) {
         return false;
       }
+      
+      // Property type filter
       if (filters.propertyTypes.length > 0 && !filters.propertyTypes.includes(property.property_type as PropertyType)) {
         return false;
       }
+      
+      // Status filter
       if (filters.status && property.status !== filters.status) {
         return false;
       }
+      
+      // Address search filter (case-insensitive, partial match)
+      if (filters.addressSearch) {
+        const searchLower = filters.addressSearch.toLowerCase();
+        const addressMatch = 
+          property.street_address?.toLowerCase().includes(searchLower) ||
+          property.city?.toLowerCase().includes(searchLower) ||
+          property.zip_code?.toLowerCase().includes(searchLower);
+        if (!addressMatch) {
+          return false;
+        }
+      }
+      
+      // Wholesaler search filter (case-insensitive, partial match)
+      if (filters.wholesalerSearch) {
+        const searchLower = filters.wholesalerSearch.toLowerCase();
+        const wholesaler = property.wholesaler;
+        const wholesalerMatch = 
+          wholesaler?.name?.toLowerCase().includes(searchLower) ||
+          wholesaler?.company_name?.toLowerCase().includes(searchLower) ||
+          wholesaler?.email?.toLowerCase().includes(searchLower);
+        if (!wholesalerMatch) {
+          return false;
+        }
+      }
+      
       return true;
     });
   }, [allProperties, filters]);
