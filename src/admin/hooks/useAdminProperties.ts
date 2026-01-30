@@ -8,8 +8,18 @@ interface AdminPropertyFilters {
   wholesaler_id?: string;
 }
 
+// Extended property type with additional wholesaler count
+export interface AdminProperty extends Property {
+  wholesalers?: {
+    name: string;
+    email: string;
+    company_name: string | null;
+  } | null;
+  additional_wholesaler_count?: number;
+}
+
 export const useAdminProperties = (filters?: AdminPropertyFilters) => {
-  const [properties, setProperties] = useState<Property[]>([]);
+  const [properties, setProperties] = useState<AdminProperty[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
@@ -52,7 +62,35 @@ export const useAdminProperties = (filters?: AdminPropertyFilters) => {
 
       if (fetchError) throw fetchError;
 
-      setProperties(data || []);
+      // Fetch additional wholesaler counts for all properties
+      if (data && data.length > 0) {
+        const propertyIds = data.map(p => p.id);
+        
+        const { data: wholesalerCounts, error: countError } = await supabase
+          .from('property_wholesalers')
+          .select('property_id')
+          .in('property_id', propertyIds);
+
+        if (!countError && wholesalerCounts) {
+          // Count occurrences per property_id
+          const countMap: Record<string, number> = {};
+          wholesalerCounts.forEach(item => {
+            countMap[item.property_id] = (countMap[item.property_id] || 0) + 1;
+          });
+
+          // Merge counts into properties
+          const propertiesWithCounts = data.map(property => ({
+            ...property,
+            additional_wholesaler_count: countMap[property.id] || 0,
+          }));
+
+          setProperties(propertiesWithCounts);
+        } else {
+          setProperties(data || []);
+        }
+      } else {
+        setProperties(data || []);
+      }
     } catch (err) {
       console.error('Properties fetch error:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch properties');

@@ -6,7 +6,7 @@ import { PropertyFormData } from '../types';
 import { US_STATES, PROPERTY_TYPES, PROPERTY_STATUSES } from '../utils/rolePermissions';
 import { ImageUploader } from './ImageUploader';
 import { RichTextEditor } from './RichTextEditor';
-import { WholesalerSelector } from './WholesalerSelector';
+import { MultiWholesalerSelector } from './MultiWholesalerSelector';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -15,14 +15,18 @@ import { lookupZip } from '../../data/zipCodeData';
 interface PropertyFormProps {
   property?: Property;
   isEdit?: boolean;
+  additionalWholesalerIds?: string[];
 }
 
-export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) => {
+export const PropertyForm = ({ property, isEdit = false, additionalWholesalerIds: initialAdditionalIds = [] }: PropertyFormProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { success, error: showError } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Multi-wholesaler state
+  const [additionalWholesalerIds, setAdditionalWholesalerIds] = useState<string[]>(initialAdditionalIds);
   
   // County lock state
   const [isCountyLocked, setIsCountyLocked] = useState(false);
@@ -50,6 +54,11 @@ export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) =>
     source_email_date: property?.source_email_date || null,
     auto_imported: property?.auto_imported || false,
   });
+
+  // Sync additional wholesaler IDs when prop changes
+  useEffect(() => {
+    setAdditionalWholesalerIds(initialAdditionalIds);
+  }, [initialAdditionalIds]);
 
   // Auto-fill from ZIP code
   useEffect(() => {
@@ -106,6 +115,8 @@ export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) =>
     setIsSubmitting(true);
 
     try {
+      let propertyId = property?.id;
+
       if (isEdit && property) {
         const { error: updateError } = await supabase
           .from('properties')
@@ -116,20 +127,48 @@ export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) =>
           .eq('id', property.id);
 
         if (updateError) throw updateError;
-        success('Property updated successfully!');
       } else {
-        const { error: insertError } = await supabase
+        const { data: insertedProperty, error: insertError } = await supabase
           .from('properties')
           .insert({
             ...formData,
             created_by: user?.id,
             updated_by: user?.id,
-          });
+          })
+          .select('id')
+          .single();
 
         if (insertError) throw insertError;
-        success('Property created successfully!');
+        propertyId = insertedProperty.id;
       }
 
+      // Handle additional wholesalers (junction table)
+      if (propertyId) {
+        // First, delete existing additional wholesalers for this property
+        await supabase
+          .from('property_wholesalers')
+          .delete()
+          .eq('property_id', propertyId);
+
+        // Insert new additional wholesalers
+        if (additionalWholesalerIds.length > 0) {
+          const wholesalerRecords = additionalWholesalerIds.map(wholesalerId => ({
+            property_id: propertyId,
+            wholesaler_id: wholesalerId,
+          }));
+
+          const { error: junctionError } = await supabase
+            .from('property_wholesalers')
+            .insert(wholesalerRecords);
+
+          if (junctionError) {
+            console.error('Failed to save additional wholesalers:', junctionError);
+            // Don't throw - property was saved successfully
+          }
+        }
+      }
+
+      success(isEdit ? 'Property updated successfully!' : 'Property created successfully!');
       navigate('/admin/properties');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to save property';
@@ -221,18 +260,17 @@ export const PropertyForm = ({ property, isEdit = false }: PropertyFormProps) =>
 
           {/* RIGHT: Wholesaler + Visibility - takes 2 columns (40%) */}
           <div className="md:col-span-2 space-y-6">
-            {/* Wholesaler Card */}
+            {/* Wholesaler Card - Now Multi-Wholesaler */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-4 mb-4">
-                Wholesaler
+                Wholesalers
               </h3>
-              <WholesalerSelector
-                value={formData.wholesaler_id}
-                onChange={(wholesalerId) => setFormData(prev => ({ ...prev, wholesaler_id: wholesalerId }))}
+              <MultiWholesalerSelector
+                primaryWholesalerId={formData.wholesaler_id}
+                additionalWholesalerIds={additionalWholesalerIds}
+                onPrimaryChange={(wholesalerId) => setFormData(prev => ({ ...prev, wholesaler_id: wholesalerId }))}
+                onAdditionalChange={setAdditionalWholesalerIds}
               />
-              <p className="text-xs text-gray-500 mt-3">
-                Select the wholesaler who sent this deal.
-              </p>
             </div>
 
             {/* Visibility Card */}

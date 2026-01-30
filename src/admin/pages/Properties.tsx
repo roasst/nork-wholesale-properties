@@ -5,7 +5,7 @@ import { AdminLayout } from '../components/AdminLayout';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { PendingPropertyCard } from '../components/PendingPropertyCard';
 import { BulkApproveSection } from '../components/BulkApproveSection';
-import { useAdminProperties } from '../hooks/useAdminProperties';
+import { useAdminProperties, AdminProperty } from '../hooks/useAdminProperties';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { formatCurrency, getAdminStatusLabel } from '../../lib/utils';
@@ -409,10 +409,17 @@ export const Properties = () => {
                                 <p className="text-sm text-gray-600">
                                   {property.city}, {property.state} {property.zip_code}
                                 </p>
-                                {(property as any).wholesalers?.name && (
-                                  <span className="inline-flex items-center px-2 py-0.5 mt-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                    {(property as any).wholesalers?.name}
-                                  </span>
+                                {(property as AdminProperty).wholesalers?.name && (
+                                  <div className="flex items-center gap-1 mt-1">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                      {(property as AdminProperty).wholesalers?.name}
+                                    </span>
+                                    {((property as AdminProperty).additional_wholesaler_count || 0) > 0 && (
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">
+                                        +{(property as AdminProperty).additional_wholesaler_count} more
+                                      </span>
+                                    )}
+                                  </div>
                                 )}
                               </div>
                             </div>

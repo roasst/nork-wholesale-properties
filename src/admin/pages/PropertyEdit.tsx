@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Trash2, Mail, Phone, Building2 } from 'lucide-react';
+import { Trash2, Mail, Phone, Building2, Users } from 'lucide-react';
 import { AdminLayout } from '../components/AdminLayout';
 import { PropertyForm } from '../components/PropertyForm';
 import { ConfirmModal } from '../components/ConfirmModal';
@@ -15,6 +15,8 @@ export const PropertyEdit = () => {
   const { canDeleteProperties } = useAuth();
   const [property, setProperty] = useState<Property | null>(null);
   const [wholesaler, setWholesaler] = useState<Wholesaler | null>(null);
+  const [additionalWholesalers, setAdditionalWholesalers] = useState<Wholesaler[]>([]);
+  const [additionalWholesalerIds, setAdditionalWholesalerIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -44,6 +46,7 @@ export const PropertyEdit = () => {
 
       setProperty(data);
 
+      // Fetch primary wholesaler
       if (data.wholesaler_id) {
         const { data: wholesalerData, error: wholesalerError } = await supabase
           .from('wholesalers')
@@ -54,6 +57,22 @@ export const PropertyEdit = () => {
         if (!wholesalerError && wholesalerData) {
           setWholesaler(wholesalerData);
         }
+      }
+
+      // Fetch additional wholesalers from junction table
+      const { data: additionalData, error: additionalError } = await supabase
+        .from('property_wholesalers')
+        .select('wholesaler_id, wholesalers(*)')
+        .eq('property_id', id);
+
+      if (!additionalError && additionalData) {
+        const ids = additionalData.map(item => item.wholesaler_id);
+        const wholesalersData = additionalData
+          .map(item => item.wholesalers as Wholesaler)
+          .filter(Boolean);
+        
+        setAdditionalWholesalerIds(ids);
+        setAdditionalWholesalers(wholesalersData);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load property');
@@ -83,6 +102,8 @@ export const PropertyEdit = () => {
       setShowDeleteModal(false);
     }
   };
+
+  const totalWholesalers = (wholesaler ? 1 : 0) + additionalWholesalers.length;
 
   if (isLoading) {
     return (
@@ -129,11 +150,20 @@ export const PropertyEdit = () => {
           )}
         </div>
 
+        {/* Primary Wholesaler Contact Card */}
         {wholesaler && (
           <div className="bg-gradient-to-br from-green-50 to-white border-2 border-[#7CB342] rounded-lg p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Mail size={20} className="text-[#7CB342]" />
-              <h3 className="text-lg font-bold text-gray-900">Wholesaler Contact</h3>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Mail size={20} className="text-[#7CB342]" />
+                <h3 className="text-lg font-bold text-gray-900">Primary Wholesaler Contact</h3>
+              </div>
+              {totalWholesalers > 1 && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
+                  <Users size={14} />
+                  +{totalWholesalers - 1} more
+                </span>
+              )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -181,6 +211,32 @@ export const PropertyEdit = () => {
           </div>
         )}
 
+        {/* Additional Wholesalers Summary */}
+        {additionalWholesalers.length > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Users size={18} className="text-blue-600" />
+              <h4 className="font-semibold text-gray-900">Additional Wholesalers ({additionalWholesalers.length})</h4>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {additionalWholesalers.map(w => (
+                <div 
+                  key={w.id}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-blue-200 rounded-full text-sm"
+                >
+                  <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
+                    {w.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="font-medium text-gray-800">{w.name}</span>
+                  {w.is_trusted && (
+                    <span className="w-2 h-2 bg-green-500 rounded-full" title="Trusted"></span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {property?.auto_imported && property.source_email_subject && (
           <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
             <div className="flex items-center gap-2 mb-3">
@@ -219,7 +275,11 @@ export const PropertyEdit = () => {
           </div>
         )}
 
-        <PropertyForm property={property} isEdit />
+        <PropertyForm 
+          property={property} 
+          isEdit 
+          additionalWholesalerIds={additionalWholesalerIds}
+        />
       </div>
 
       <ConfirmModal
