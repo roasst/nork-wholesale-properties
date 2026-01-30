@@ -8,7 +8,14 @@ interface AdminPropertyFilters {
   wholesaler_id?: string;
 }
 
-// Extended property type with additional wholesaler count
+// Additional wholesaler info from junction table
+export interface AdditionalWholesaler {
+  id: string;
+  name: string;
+  company_name: string | null;
+}
+
+// Extended property type with additional wholesalers
 export interface AdminProperty extends Property {
   wholesalers?: {
     name: string;
@@ -16,6 +23,7 @@ export interface AdminProperty extends Property {
     company_name: string | null;
   } | null;
   additional_wholesaler_count?: number;
+  additional_wholesalers?: AdditionalWholesaler[];
 }
 
 export const useAdminProperties = (filters?: AdminPropertyFilters) => {
@@ -62,29 +70,39 @@ export const useAdminProperties = (filters?: AdminPropertyFilters) => {
 
       if (fetchError) throw fetchError;
 
-      // Fetch additional wholesaler counts for all properties
+      // Fetch additional wholesalers with names for all properties
       if (data && data.length > 0) {
         const propertyIds = data.map(p => p.id);
         
-        const { data: wholesalerCounts, error: countError } = await supabase
+        const { data: additionalWholesalers, error: fetchWholesalersError } = await supabase
           .from('property_wholesalers')
-          .select('property_id')
+          .select('property_id, wholesaler_id, wholesalers(id, name, company_name)')
           .in('property_id', propertyIds);
 
-        if (!countError && wholesalerCounts) {
-          // Count occurrences per property_id
-          const countMap: Record<string, number> = {};
-          wholesalerCounts.forEach(item => {
-            countMap[item.property_id] = (countMap[item.property_id] || 0) + 1;
+        if (!fetchWholesalersError && additionalWholesalers) {
+          // Group wholesalers by property_id
+          const wholesalerMap: Record<string, AdditionalWholesaler[]> = {};
+          additionalWholesalers.forEach(item => {
+            if (!wholesalerMap[item.property_id]) {
+              wholesalerMap[item.property_id] = [];
+            }
+            if (item.wholesalers) {
+              wholesalerMap[item.property_id].push({
+                id: item.wholesalers.id,
+                name: item.wholesalers.name,
+                company_name: item.wholesalers.company_name,
+              });
+            }
           });
 
-          // Merge counts into properties
-          const propertiesWithCounts = data.map(property => ({
+          // Merge into properties
+          const propertiesWithWholesalers = data.map(property => ({
             ...property,
-            additional_wholesaler_count: countMap[property.id] || 0,
+            additional_wholesaler_count: wholesalerMap[property.id]?.length || 0,
+            additional_wholesalers: wholesalerMap[property.id] || [],
           }));
 
-          setProperties(propertiesWithCounts);
+          setProperties(propertiesWithWholesalers);
         } else {
           setProperties(data || []);
         }

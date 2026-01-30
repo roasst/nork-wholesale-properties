@@ -415,9 +415,21 @@ export const Properties = () => {
                                       {(property as AdminProperty).wholesalers?.name}
                                     </span>
                                     {((property as AdminProperty).additional_wholesaler_count || 0) > 0 && (
-                                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">
-                                        +{(property as AdminProperty).additional_wholesaler_count} more
-                                      </span>
+                                      <div className="relative group">
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700 cursor-pointer">
+                                          +{(property as AdminProperty).additional_wholesaler_count} more
+                                        </span>
+                                        {/* Tooltip */}
+                                        <div className="absolute bottom-full left-0 mb-1 hidden group-hover:block z-50">
+                                          <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg whitespace-nowrap">
+                                            <p className="font-semibold mb-1 text-gray-300">Additional Wholesalers:</p>
+                                            {(property as AdminProperty).additional_wholesalers?.map((w) => (
+                                              <p key={w.id}>{w.name}{w.company_name ? ` (${w.company_name})` : ''}</p>
+                                            ))}
+                                          </div>
+                                          <div className="w-2 h-2 bg-gray-900 rotate-45 absolute -bottom-1 left-4"></div>
+                                        </div>
+                                      </div>
                                     )}
                                   </div>
                                 )}
