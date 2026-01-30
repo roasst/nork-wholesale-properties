@@ -5,8 +5,13 @@
 import { Property } from '../../../types';
 import { Check, ImageOff, MapPin, Home, DollarSign } from 'lucide-react';
 
+// Extended property type with additional wholesaler count
+interface BroadcastProperty extends Property {
+  additional_wholesaler_count?: number;
+}
+
 interface BroadcastPropertyGridProps {
-  properties: Property[];
+  properties: BroadcastProperty[];
   selectedIds: Set<string>;
   onToggleSelect: (id: string) => void;
   onSelectAll: () => void;
@@ -154,10 +159,15 @@ export const BroadcastPropertyGrid = ({
                   
                   {/* Wholesaler Badge */}
                   {property.wholesalers?.name && (
-                    <div className="mt-2 pt-2 border-t border-gray-100">
+                    <div className="mt-2 pt-2 border-t border-gray-100 flex items-center gap-1 flex-wrap">
                       <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">
                         {property.wholesalers.name}
                       </span>
+                      {property.additional_wholesaler_count && property.additional_wholesaler_count > 0 && (
+                        <span className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full">
+                          +{property.additional_wholesaler_count} more
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
