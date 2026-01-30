@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, AlertCircle, Lock, Pencil, X, AlertTriangle, ExternalLink, Loader2 } from 'lucide-react';
 import { Property } from '../../types';
@@ -47,6 +47,11 @@ export const PropertyForm = ({ property, isEdit = false, additionalWholesalerIds
   const [duplicateProperty, setDuplicateProperty] = useState<DuplicateProperty | null>(null);
   const duplicateCheckTimeout = useRef<NodeJS.Timeout | null>(null);
 
+  // Unsaved changes tracking
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showAbandonDialog, setShowAbandonDialog] = useState(false);
+  const initialFormData = useRef<PropertyFormData | null>(null);
+
   const [formData, setFormData] = useState<PropertyFormData>({
     street_address: property?.street_address || '',
     city: property?.city || '',
@@ -69,6 +74,52 @@ export const PropertyForm = ({ property, isEdit = false, additionalWholesalerIds
     source_email_date: property?.source_email_date || null,
     auto_imported: property?.auto_imported || false,
   });
+
+  // Store initial form data for comparison
+  useEffect(() => {
+    if (!initialFormData.current) {
+      initialFormData.current = { ...formData };
+    }
+  }, []);
+
+  // Track unsaved changes
+  useEffect(() => {
+    if (!initialFormData.current) return;
+    
+    const hasChanges = 
+      formData.street_address !== initialFormData.current.street_address ||
+      formData.city !== initialFormData.current.city ||
+      formData.county !== initialFormData.current.county ||
+      formData.state !== initialFormData.current.state ||
+      formData.zip_code !== initialFormData.current.zip_code ||
+      formData.asking_price !== initialFormData.current.asking_price ||
+      formData.arv !== initialFormData.current.arv ||
+      formData.property_type !== initialFormData.current.property_type ||
+      formData.bedrooms !== initialFormData.current.bedrooms ||
+      formData.bathrooms !== initialFormData.current.bathrooms ||
+      formData.square_footage !== initialFormData.current.square_footage ||
+      formData.status !== initialFormData.current.status ||
+      formData.comments !== initialFormData.current.comments ||
+      formData.image_url !== initialFormData.current.image_url ||
+      formData.is_active !== initialFormData.current.is_active ||
+      formData.wholesaler_id !== initialFormData.current.wholesaler_id ||
+      additionalWholesalerIds.length !== initialAdditionalIds.length;
+    
+    setHasUnsavedChanges(hasChanges);
+  }, [formData, additionalWholesalerIds, initialAdditionalIds]);
+
+  // Warn before browser close/refresh with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   // Sync additional wholesaler IDs when prop changes
   useEffect(() => {
@@ -185,6 +236,21 @@ export const PropertyForm = ({ property, isEdit = false, additionalWholesalerIds
     setShowCountyEditDialog(false);
   };
 
+  // Handle cancel with unsaved changes check
+  const handleCancel = useCallback(() => {
+    if (hasUnsavedChanges) {
+      setShowAbandonDialog(true);
+    } else {
+      navigate('/admin/properties');
+    }
+  }, [hasUnsavedChanges, navigate]);
+
+  const handleConfirmAbandon = () => {
+    setShowAbandonDialog(false);
+    setHasUnsavedChanges(false); // Prevent beforeunload warning
+    navigate('/admin/properties');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -251,6 +317,7 @@ export const PropertyForm = ({ property, isEdit = false, additionalWholesalerIds
         }
       }
 
+      setHasUnsavedChanges(false); // Clear unsaved state before navigation
       success(isEdit ? 'Property updated successfully!' : 'Property created successfully!');
       navigate('/admin/properties');
     } catch (err) {
@@ -264,6 +331,43 @@ export const PropertyForm = ({ property, isEdit = false, additionalWholesalerIds
 
   // Check if form can be submitted
   const canSubmit = !isSubmitting && !duplicateProperty && !isCheckingDuplicate;
+
+  // Action buttons component (reusable for top and bottom)
+  const ActionButtons = ({ position }: { position: 'top' | 'bottom' }) => (
+    <div className={`flex items-center ${position === 'top' ? 'justify-end' : 'justify-between'}`}>
+      {/* Left side - duplicate warning reminder (bottom only) */}
+      {position === 'bottom' && duplicateProperty && (
+        <p className="text-sm text-red-600 flex items-center gap-1">
+          <AlertTriangle size={14} />
+          Submission blocked: duplicate address
+        </p>
+      )}
+      {position === 'bottom' && !duplicateProperty && <div />}
+      
+      {/* Right side - buttons */}
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={handleCancel}
+          className="px-5 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={!canSubmit}
+          className={`px-5 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+            canSubmit
+              ? 'bg-[#7CB342] hover:bg-[#689F38] text-white'
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          }`}
+        >
+          {isSubmitting && <Loader2 size={16} className="animate-spin" />}
+          {isSubmitting ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Property'}
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -308,7 +412,51 @@ export const PropertyForm = ({ property, isEdit = false, additionalWholesalerIds
         </div>
       )}
 
+      {/* Abandon Changes Confirmation Dialog */}
+      {showAbandonDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                <AlertTriangle className="text-amber-600" size={20} />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Unsaved Changes
+                </h3>
+                <p className="text-sm text-gray-600 mt-2">
+                  You have unsaved changes that will be lost if you leave this page. Do you want to continue editing or discard your changes?
+                </p>
+              </div>
+              <button
+                onClick={() => setShowAbandonDialog(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={handleConfirmAbandon}
+                className="px-4 py-2 text-red-700 bg-red-50 hover:bg-red-100 rounded-lg font-medium transition-colors"
+              >
+                Discard Changes
+              </button>
+              <button
+                onClick={() => setShowAbandonDialog(false)}
+                className="px-4 py-2 bg-[#7CB342] hover:bg-[#689F38] text-white rounded-lg font-medium transition-colors"
+              >
+                Continue Editing
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* TOP ACTION BUTTONS */}
+        <ActionButtons position="top" />
+
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
             {error}
@@ -737,40 +885,8 @@ export const PropertyForm = ({ property, isEdit = false, additionalWholesalerIds
           />
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center justify-between">
-          {/* Left side - duplicate warning reminder */}
-          {duplicateProperty && (
-            <p className="text-sm text-red-600 flex items-center gap-1">
-              <AlertTriangle size={14} />
-              Submission blocked: duplicate address
-            </p>
-          )}
-          {!duplicateProperty && <div />}
-          
-          {/* Right side - buttons */}
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={() => navigate('/admin/properties')}
-              className="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                canSubmit
-                  ? 'bg-[#7CB342] hover:bg-[#689F38] text-white'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              {isSubmitting && <Loader2 size={16} className="animate-spin" />}
-              {isSubmitting ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Property'}
-            </button>
-          </div>
-        </div>
+        {/* BOTTOM ACTION BUTTONS */}
+        <ActionButtons position="bottom" />
       </form>
     </>
   );
