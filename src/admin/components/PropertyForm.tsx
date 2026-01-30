@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, AlertCircle, Lock, Pencil, X } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, Lock, Pencil, X, AlertTriangle, ExternalLink, Loader2 } from 'lucide-react';
 import { Property } from '../../types';
 import { PropertyFormData } from '../types';
 import { US_STATES, PROPERTY_TYPES, PROPERTY_STATUSES } from '../utils/rolePermissions';
+import { normalizeStreetAddress, normalizeZipCode, addressesMatch } from '../utils/addressUtils';
 import { ImageUploader } from './ImageUploader';
 import { RichTextEditor } from './RichTextEditor';
 import { MultiWholesalerSelector } from './MultiWholesalerSelector';
@@ -16,6 +17,15 @@ interface PropertyFormProps {
   property?: Property;
   isEdit?: boolean;
   additionalWholesalerIds?: string[];
+}
+
+interface DuplicateProperty {
+  id: string;
+  street_address: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  asking_price: number;
 }
 
 export const PropertyForm = ({ property, isEdit = false, additionalWholesalerIds: initialAdditionalIds = [] }: PropertyFormProps) => {
@@ -31,6 +41,11 @@ export const PropertyForm = ({ property, isEdit = false, additionalWholesalerIds
   // County lock state
   const [isCountyLocked, setIsCountyLocked] = useState(false);
   const [showCountyEditDialog, setShowCountyEditDialog] = useState(false);
+
+  // Duplicate address checking state
+  const [isCheckingDuplicate, setIsCheckingDuplicate] = useState(false);
+  const [duplicateProperty, setDuplicateProperty] = useState<DuplicateProperty | null>(null);
+  const duplicateCheckTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const [formData, setFormData] = useState<PropertyFormData>({
     street_address: property?.street_address || '',
@@ -77,6 +92,67 @@ export const PropertyForm = ({ property, isEdit = false, additionalWholesalerIds
     }
   }, [formData.zip_code]);
 
+  // Debounced duplicate address check
+  useEffect(() => {
+    // Skip duplicate check in edit mode
+    if (isEdit) return;
+    
+    // Clear any pending check
+    if (duplicateCheckTimeout.current) {
+      clearTimeout(duplicateCheckTimeout.current);
+    }
+
+    const streetAddress = formData.street_address?.trim();
+    const zipCode = formData.zip_code?.trim();
+
+    // Need both fields with minimum content to check
+    if (!streetAddress || streetAddress.length < 5 || !zipCode || zipCode.length < 5) {
+      setDuplicateProperty(null);
+      setIsCheckingDuplicate(false);
+      return;
+    }
+
+    // Debounce the check (500ms)
+    setIsCheckingDuplicate(true);
+    duplicateCheckTimeout.current = setTimeout(async () => {
+      try {
+        // Extract first few words of street for broad search
+        const streetWords = streetAddress.split(' ').slice(0, 3).join(' ');
+        
+        const { data: properties, error: searchError } = await supabase
+          .from('properties')
+          .select('id, street_address, city, state, zip_code, asking_price')
+          .ilike('street_address', `%${streetWords}%`)
+          .eq('zip_code', normalizeZipCode(zipCode))
+          .limit(10);
+
+        if (searchError) {
+          console.error('Duplicate check error:', searchError);
+          setIsCheckingDuplicate(false);
+          return;
+        }
+
+        // Check for normalized match
+        const duplicate = properties?.find(p => 
+          addressesMatch(streetAddress, zipCode, p.street_address, p.zip_code)
+        );
+
+        setDuplicateProperty(duplicate || null);
+      } catch (err) {
+        console.error('Duplicate check failed:', err);
+      } finally {
+        setIsCheckingDuplicate(false);
+      }
+    }, 500);
+
+    // Cleanup
+    return () => {
+      if (duplicateCheckTimeout.current) {
+        clearTimeout(duplicateCheckTimeout.current);
+      }
+    };
+  }, [formData.street_address, formData.zip_code, isEdit]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -111,6 +187,13 @@ export const PropertyForm = ({ property, isEdit = false, additionalWholesalerIds
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Block submission if duplicate exists
+    if (duplicateProperty) {
+      showError('Cannot save: A property with this address already exists.');
+      return;
+    }
+    
     setError(null);
     setIsSubmitting(true);
 
@@ -179,6 +262,9 @@ export const PropertyForm = ({ property, isEdit = false, additionalWholesalerIds
     }
   };
 
+  // Check if form can be submitted
+  const canSubmit = !isSubmitting && !duplicateProperty && !isCheckingDuplicate;
+
   return (
     <>
       {/* County Edit Confirmation Dialog */}
@@ -226,6 +312,44 @@ export const PropertyForm = ({ property, isEdit = false, additionalWholesalerIds
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
             {error}
+          </div>
+        )}
+
+        {/* Duplicate Address Warning Banner */}
+        {duplicateProperty && !isEdit && (
+          <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <AlertTriangle className="text-red-600" size={24} />
+              </div>
+              <div className="flex-1">
+                <h4 className="text-red-800 font-semibold text-base">
+                  Duplicate Address Detected
+                </h4>
+                <p className="text-red-700 text-sm mt-1">
+                  A property with this address already exists in the system:
+                </p>
+                <div className="mt-3 bg-white border border-red-200 rounded-lg p-3">
+                  <p className="font-medium text-gray-900">
+                    {duplicateProperty.street_address}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {duplicateProperty.city}, {duplicateProperty.state} {duplicateProperty.zip_code}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Asking Price: <span className="font-semibold">${duplicateProperty.asking_price?.toLocaleString()}</span>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/admin/properties/${duplicateProperty.id}`)}
+                  className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium text-sm transition-colors"
+                >
+                  <ExternalLink size={16} />
+                  View Existing Property
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -351,15 +475,25 @@ export const PropertyForm = ({ property, isEdit = false, additionalWholesalerIds
                 required
                 maxLength={10}
                 placeholder="Enter 5-digit ZIP code"
-                className="w-full px-3 py-2 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base font-medium"
+                className={`w-full px-3 py-2 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base font-medium ${
+                  duplicateProperty ? 'border-red-300 bg-red-50' : 'border-blue-300'
+                }`}
               />
             </div>
 
             {/* Street Address */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Street Address <span className="text-red-500">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-gray-700">
+                  Street Address <span className="text-red-500">*</span>
+                </label>
+                {isCheckingDuplicate && (
+                  <span className="text-xs text-gray-500 flex items-center gap-1">
+                    <Loader2 size={12} className="animate-spin" />
+                    Checking...
+                  </span>
+                )}
+              </div>
               <input
                 type="text"
                 name="street_address"
@@ -367,8 +501,16 @@ export const PropertyForm = ({ property, isEdit = false, additionalWholesalerIds
                 onChange={handleChange}
                 required
                 placeholder="123 Main Street"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent"
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#7CB342] focus:border-transparent ${
+                  duplicateProperty ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                }`}
               />
+              {duplicateProperty && (
+                <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                  <AlertTriangle size={12} />
+                  This address already exists in the system
+                </p>
+              )}
             </div>
 
             {/* City and State row */}
@@ -596,21 +738,38 @@ export const PropertyForm = ({ property, isEdit = false, additionalWholesalerIds
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-end gap-4">
-          <button
-            type="button"
-            onClick={() => navigate('/admin/properties')}
-            className="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-6 py-2 bg-[#7CB342] hover:bg-[#689F38] text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-          >
-            {isSubmitting ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Property'}
-          </button>
+        <div className="flex items-center justify-between">
+          {/* Left side - duplicate warning reminder */}
+          {duplicateProperty && (
+            <p className="text-sm text-red-600 flex items-center gap-1">
+              <AlertTriangle size={14} />
+              Submission blocked: duplicate address
+            </p>
+          )}
+          {!duplicateProperty && <div />}
+          
+          {/* Right side - buttons */}
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => navigate('/admin/properties')}
+              className="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={!canSubmit}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                canSubmit
+                  ? 'bg-[#7CB342] hover:bg-[#689F38] text-white'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              {isSubmitting && <Loader2 size={16} className="animate-spin" />}
+              {isSubmitting ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Property'}
+            </button>
+          </div>
         </div>
       </form>
     </>

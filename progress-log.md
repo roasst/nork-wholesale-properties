@@ -1,76 +1,49 @@
-# Multi-Wholesaler Feature Progress Log
+# Progress Log - Nork Wholesale Properties
 
-## Session: January 29, 2026
+## Session: January 30, 2026
 
-### Feature Requirements (Confirmed by User)
-1. **Data Structure**: Option A - Keep `wholesaler_id` as primary + add junction table
-2. **Property Card Display**: Option B - Show first wholesaler + "+X more" badge
-3. **Edit Property UI**: Option B - "Add Wholesaler" button with chips/tags (MultiWholesalerSelector already exists!)
-4. **Primary Wholesaler**: Yes - first wholesaler = primary
+### Feature: Duplicate Address Prevention ✅ COMPLETE
 
----
+**Requirements:**
+1. ✅ Real-time debounced check (500ms) as user types
+2. ✅ Block submission entirely when duplicate found
+3. ✅ Skip check in edit mode (property won't match itself)
+4. ✅ Normalized address matching (St = Street, Ave = Avenue, etc.)
 
-## Implementation Tasks
+**Files Created/Modified:**
+- `src/admin/utils/addressUtils.ts` - NEW - Address normalization utilities
+- `src/admin/components/PropertyForm.tsx` - UPDATED - Added duplicate checking
 
-### Task 1: Database Migration ⏳ PENDING USER ACTION
-- [ ] Create `property_wholesalers` junction table
-- [ ] Add RLS policies
+**Implementation Details:**
+- Debounced Supabase query on street_address + zip_code change
+- Searches first 3 words of street address for broad match
+- Uses normalized comparison for accurate duplicate detection
+- Shows prominent red warning banner with duplicate property details
+- "View Existing Property" button navigates to the duplicate
+- Submit button disabled when duplicate detected
+- Visual indicators on input fields (red border, background)
+- "Checking..." spinner during validation
 
-### Task 2: Update PropertyForm ✅ COMPLETE
-- [x] Replace `WholesalerSelector` with `MultiWholesalerSelector`
-- [x] Add `additionalWholesalerIds` state
-- [x] Handle save: primary → `properties.wholesaler_id`, additional → `property_wholesalers`
-
-### Task 3: Update PropertyEdit ✅ COMPLETE
-- [x] Fetch additional wholesalers from junction table on load
-- [x] Pass to PropertyForm as props
-- [x] Display "+X more" badge next to primary wholesaler
-- [x] Show "Additional Wholesalers" summary section
-
-### Task 4: Update useAdminProperties Hook ✅ COMPLETE
-- [x] Add subquery for additional wholesaler count
-- [x] Export `AdminProperty` type with `additional_wholesaler_count`
-
-### Task 5: Update Properties.tsx ✅ COMPLETE
-- [x] Show wholesaler badge with "+X more" indicator in property table
+**Address Normalization Rules:**
+- Street types: street→st, avenue→ave, drive→dr, road→rd, boulevard→blvd, lane→ln, court→ct, circle→cir, place→pl, terrace→ter, trail→trl, parkway→pkwy, highway→hwy
+- Directions: north→n, south→s, east→e, west→w, northeast→ne, northwest→nw, southeast→se, southwest→sw
+- Removes punctuation (.,#)
+- Normalizes whitespace
 
 ---
 
-## Files Modified
-- `src/admin/components/PropertyForm.tsx` ✅
-- `src/admin/pages/PropertyEdit.tsx` ✅
-- `src/admin/hooks/useAdminProperties.ts` ✅
-- `src/admin/pages/Properties.tsx` ✅
+## Previous Session: January 29, 2026
+
+### Feature: Multi-Wholesaler Support ✅ COMPLETE
+(See previous entries)
 
 ---
 
-## SQL Migration (Run in Supabase SQL Editor)
-```sql
--- Junction table for additional wholesalers per property
-CREATE TABLE IF NOT EXISTS property_wholesalers (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  property_id UUID NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
-  wholesaler_id UUID NOT NULL REFERENCES wholesalers(id) ON DELETE CASCADE,
-  added_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(property_id, wholesaler_id)
-);
+## Git Push Commands
 
--- Enable RLS
-ALTER TABLE property_wholesalers ENABLE ROW LEVEL SECURITY;
-
--- Policies
-CREATE POLICY "Anyone can read property_wholesalers"
-  ON property_wholesalers FOR SELECT TO anon, authenticated USING (true);
-
-CREATE POLICY "Authenticated users can manage property_wholesalers"
-  ON property_wholesalers FOR ALL TO authenticated USING (true);
+```powershell
+cd C:\Projects\nork-wholesale-properties
+git add -A
+git commit -m "Add duplicate address prevention with real-time validation"
+git push
 ```
-
----
-
-## Current Status: CODE COMPLETE - AWAITING DATABASE MIGRATION
-
-### Next Steps:
-1. Run SQL migration in Supabase Dashboard → SQL Editor
-2. Deploy code via `git push`
-3. Test create/edit flows with multiple wholesalers
